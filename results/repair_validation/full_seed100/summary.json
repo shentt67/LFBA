@@ -1,0 +1,134 @@
+{
+  "baseline": {
+    "best_epoch": 19,
+    "validation": {
+      "acc": 0.769,
+      "poison_acc": 0.7644,
+      "asr": 0.029111111111111112,
+      "target_acc": 0.814,
+      "loss": 0.6917380662918091,
+      "counts": {
+        "acc": 5000,
+        "poison_acc": 5000,
+        "asr": 4500,
+        "target_acc": 500
+      },
+      "undefined": {}
+    },
+    "test": {
+      "acc": 0.7731,
+      "poison_acc": 0.7667,
+      "asr": 0.028777777777777777,
+      "target_acc": 0.853,
+      "loss": 0.6804195922374725,
+      "counts": {
+        "acc": 10000,
+        "poison_acc": 10000,
+        "asr": 9000,
+        "target_acc": 1000
+      },
+      "undefined": {}
+    },
+    "elapsed_seconds": 928.7001647000006,
+    "peak_cuda_memory_bytes": 459537408,
+    "arguments": [
+      "--dataset",
+      "CIFAR10",
+      "--data_dir",
+      "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data",
+      "--device",
+      "0",
+      "--epoch",
+      "20",
+      "--batch_size",
+      "128",
+      "--seed",
+      "100",
+      "--early_stop",
+      "0",
+      "--lr",
+      ".001",
+      "--anchor_idx",
+      "23470",
+      "--target_label",
+      "6",
+      "--poison_rate",
+      ".1",
+      "--select_rate",
+      ".5",
+      "--similarity",
+      "legacy_l1",
+      "--print_steps",
+      "100",
+      "--results_dir",
+      "results\\repair_validation\\full_seed100\\baseline"
+    ]
+  },
+  "lfba": {
+    "best_epoch": 16,
+    "validation": {
+      "acc": 0.7534,
+      "poison_acc": 0.1164,
+      "asr": 0.9595555555555556,
+      "target_acc": 0.708,
+      "loss": 0.7372098571777344,
+      "counts": {
+        "acc": 5000,
+        "poison_acc": 5000,
+        "asr": 4500,
+        "target_acc": 500
+      },
+      "undefined": {}
+    },
+    "test": {
+      "acc": 0.7483,
+      "poison_acc": 0.1161,
+      "asr": 0.9637777777777777,
+      "target_acc": 0.737,
+      "loss": 0.7336930149078369,
+      "counts": {
+        "acc": 10000,
+        "poison_acc": 10000,
+        "asr": 9000,
+        "target_acc": 1000
+      },
+      "undefined": {}
+    },
+    "elapsed_seconds": 984.5323528999998,
+    "peak_cuda_memory_bytes": 457505792,
+    "arguments": [
+      "--dataset",
+      "CIFAR10",
+      "--data_dir",
+      "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data",
+      "--device",
+      "0",
+      "--epoch",
+      "20",
+      "--batch_size",
+      "128",
+      "--seed",
+      "100",
+      "--early_stop",
+      "0",
+      "--lr",
+      ".001",
+      "--anchor_idx",
+      "23470",
+      "--target_label",
+      "6",
+      "--poison_rate",
+      ".1",
+      "--select_rate",
+      ".5",
+      "--similarity",
+      "legacy_l1",
+      "--print_steps",
+      "100",
+      "--attack",
+      "LFBA",
+      "--results_dir",
+      "results\\repair_validation\\full_seed100\\lfba"
+    ]
+  }
+}

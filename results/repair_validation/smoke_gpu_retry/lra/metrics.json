@@ -1,0 +1,33 @@
+{
+  "best_epoch": 1,
+  "validation": {
+    "acc": 0.15,
+    "poison_acc": 0.15,
+    "asr": 0.7777777777777778,
+    "target_acc": 1.0,
+    "loss": 2.302865743637085,
+    "counts": {
+      "acc": 20,
+      "poison_acc": 20,
+      "asr": 18,
+      "target_acc": 2
+    },
+    "undefined": {}
+  },
+  "test": {
+    "acc": 0.13,
+    "poison_acc": 0.13,
+    "asr": 0.7444444444444445,
+    "target_acc": 0.9,
+    "loss": 2.298412256240845,
+    "counts": {
+      "acc": 100,
+      "poison_acc": 100,
+      "asr": 90,
+      "target_acc": 10
+    },
+    "undefined": {}
+  },
+  "elapsed_seconds": 3.788637199999357,
+  "peak_cuda_memory_bytes": 431648768
+}

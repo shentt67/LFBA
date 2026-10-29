@@ -1,0 +1,20 @@
+{
+  "best_epoch": 16,
+  "validation": null,
+  "test": {
+    "acc": 0.7219,
+    "poison_acc": 0.1307,
+    "asr": 0.9617777777777777,
+    "target_acc": 0.614,
+    "loss": 0.796564612197876,
+    "counts": {
+      "acc": 10000,
+      "poison_acc": 10000,
+      "asr": 9000,
+      "target_acc": 1000
+    },
+    "undefined": {}
+  },
+  "elapsed_seconds": 9.525541400000293,
+  "peak_cuda_memory_bytes": 113719808
+}

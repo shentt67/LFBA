@@ -1,0 +1,97 @@
+test_rsa_preserves_numpy_and_tensor_inputs (tests.test_attacks.AttackTests) ... ok
+test_similarity_modes_zero_vectors_and_original_id_ties (tests.test_attacks.AttackTests) ... ok
+test_persistent_lock_is_bounded_and_preserves_previous_file (tests.test_checkpoint_io.CheckpointIOTests) ... ok
+test_transient_windows_file_lock_retries_without_corrupting_checkpoint (tests.test_checkpoint_io.CheckpointIOTests) ... ok
+test_empty_asr_denominator_is_explicit (tests.test_checkpoints.CheckpointTests) ... ok
+test_legacy_checkpoint_cannot_claim_strict_resume (tests.test_checkpoints.CheckpointTests) ... ok
+test_lfba_interrupted_resume_matches_continuous_training (tests.test_checkpoints.CheckpointTests) ... ok
+test_resume_after_poisoning_preserves_unimproved_best (tests.test_checkpoints.CheckpointTests) ... ok
+test_post_augmentation_attack_preserves_honest_half (tests.test_cifar.CifarTests) ... ok
+test_trigger_only_and_label_replacement (tests.test_cifar.CifarTests) ... ok
+test_invalid_configuration_rejected (tests.test_config.ConfigTests) ... ok
+test_pretrain_delays_actual_poisoning (tests.test_config.ConfigTests) ... ok
+test_supported_options_and_explicit_directory (tests.test_config.ConfigTests) ... ok
+test_nuswide_names (tests.test_data.DataTests) ... ok
+test_phishing_anchor_is_retained_before_scaler_fit (tests.test_data.DataTests) ... ok
+test_phishing_disjoint_shared_splits_and_training_only_scaler (tests.test_data.DataTests) ... ok
+test_real_file_interfaces_and_attacker_boundaries_for_all_table_datasets (tests.test_dataset_interfaces.DatasetInterfaceTests) ... ok
+test_legacy_evaluation_requires_explicit_metadata (tests.test_entry.EntryTests) ... ok
+test_missing_checkpoint_fails_before_dataset_access (tests.test_entry.EntryTests) ... ok
+test_train_evaluate_resume_and_reject_configuration_drift (tests.test_entry.EntryTests) ... Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "PHISHING", "results_dir": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\first", "pretrained_checkpoint": null, "test_checkpoint": null, "feature_extractor": "", "device": -1, "seed": 100, "epoch": 2, "batch_size": 4, "client_num": 2, "start_epoch": 0, "print_steps": 10, "early_stop": 0, "pretrain_stage": 0, "target_label": 1, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 1, "train_limit": null, "eval_limit": null, "lr": 0.001, "poison_rate": 0.2, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [24, 16, 27, 28, 21], "_provided": ["anchor_idx", "attack", "batch_size", "dataset", "device", "early_stop", "epoch", "poison_rate", "results_dir", "select_rate"]}
+Split sizes train=20 validation=8 test=8
+Epoch 1 batch 1/5 loss 0.6608 train_acc 0.5000
+val epoch 1 metrics: {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+End epoch 1 val={"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}} best_epoch=1 score=0.5625 seconds=0.03
+Constructed poison set: 4; target label: 1
+Epoch 2 attack recipients: 2
+Epoch 2 batch 1/5 loss 0.7126 train_acc 0.2500
+val epoch 2 metrics: {"acc": 0.625, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.5, "loss": 0.68478924036026, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+End epoch 2 val={"acc": 0.625, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.5, "loss": 0.68478924036026, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}} best_epoch=1 score=0.5625 seconds=0.03
+Training seconds: 0.06
+test epoch 1 metrics: {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+Final result: {"best_epoch": 1, "checkpoint_epoch": 1, "validation": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "test": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "elapsed_seconds": 0.08846819999962463, "peak_cuda_memory_bytes": 0}
+Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "PHISHING", "results_dir": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\eval", "pretrained_checkpoint": null, "test_checkpoint": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\first\\best_checkpoint.pth.tar", "feature_extractor": "", "device": -1, "seed": 100, "epoch": 2, "batch_size": 4, "client_num": 2, "start_epoch": 0, "print_steps": 10, "early_stop": 0, "pretrain_stage": 0, "target_label": 1, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 1, "train_limit": null, "eval_limit": null, "lr": 0.001, "poison_rate": 0.2, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [24, 16, 27, 28, 21], "_provided": ["device", "results_dir", "test_checkpoint"]}
+Split sizes train=20 validation=8 test=8
+test epoch 1 metrics: {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+Final result: {"best_epoch": 1, "checkpoint_epoch": 1, "validation": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "test": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "elapsed_seconds": 0.007904800000687828, "peak_cuda_memory_bytes": 0}
+Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "PHISHING", "results_dir": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\eval_last", "pretrained_checkpoint": null, "test_checkpoint": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\first\\last_checkpoint.pth.tar", "feature_extractor": "", "device": -1, "seed": 100, "epoch": 2, "batch_size": 4, "client_num": 2, "start_epoch": 0, "print_steps": 10, "early_stop": 0, "pretrain_stage": 0, "target_label": 1, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 1, "train_limit": null, "eval_limit": null, "lr": 0.001, "poison_rate": 0.2, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [24, 16, 27, 28, 21], "_provided": ["device", "results_dir", "test_checkpoint"]}
+Split sizes train=20 validation=8 test=8
+test epoch 2 metrics: {"acc": 0.625, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.5, "loss": 0.68478924036026, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+Final result: {"best_epoch": 1, "checkpoint_epoch": 2, "validation": {"acc": 0.625, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.5, "loss": 0.68478924036026, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "test": {"acc": 0.625, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.5, "loss": 0.68478924036026, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "elapsed_seconds": 0.007295000000340224, "peak_cuda_memory_bytes": 0}
+Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "PHISHING", "results_dir": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\resumed", "pretrained_checkpoint": "C:\\Users\\lenovo\\AppData\\Local\\Temp\\tmpa5kh8azc\\first\\last_checkpoint.pth.tar", "test_checkpoint": null, "feature_extractor": "", "device": -1, "seed": 100, "epoch": 3, "batch_size": 4, "client_num": 2, "start_epoch": 2, "print_steps": 10, "early_stop": 0, "pretrain_stage": 0, "target_label": 1, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 1, "train_limit": null, "eval_limit": null, "lr": 0.001, "poison_rate": 0.2, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [24, 16, 27, 28, 21], "_provided": ["device", "epoch", "pretrained_checkpoint", "results_dir"]}
+Split sizes train=20 validation=8 test=8
+Epoch 3 attack recipients: 2
+Epoch 3 batch 1/5 loss 0.8190 train_acc 0.2500
+val epoch 3 metrics: {"acc": 0.5, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.25, "loss": 0.6857702136039734, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+End epoch 3 val={"acc": 0.5, "poison_acc": 0.625, "asr": 0.25, "target_acc": 0.25, "loss": 0.6857702136039734, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}} best_epoch=1 score=0.5625 seconds=0.03
+Training seconds: 0.03
+test epoch 1 metrics: {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}
+Final result: {"best_epoch": 1, "checkpoint_epoch": 1, "validation": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "test": {"acc": 0.625, "poison_acc": 0.5, "asr": 0.5, "target_acc": 0.5, "loss": 0.6836805939674377, "counts": {"acc": 8, "poison_acc": 8, "asr": 4, "target_acc": 4}, "undefined": {}}, "elapsed_seconds": 0.04025980000005802, "peak_cuda_memory_bytes": 0}
+ok
+test_feature_order_does_not_depend_on_directory_enumeration (tests.test_nus_order.NusOrderTests) ... ok
+test_fixed_stratified_split_keeps_original_anchor (tests.test_splits.SplitTests) ... ok
+test_training_never_reads_test_loaders (tests.test_splits.SplitTests) ... ok
+test_every_epoch_updates_batchnorm_and_eval_has_no_grad (tests.test_training.TrainingTests) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 1.709s
+
+OK
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_buildings_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_grass_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_animal_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_water_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_person_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Low_Level_Features\Train_Normalized_features.dat.
+Loading Train_Tags1k.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_buildings_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_grass_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_animal_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_water_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_person_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Low_Level_Features\Test_Normalized_features.dat.
+Loading Test_Tags1k.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_buildings_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_grass_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_animal_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_water_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_person_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Low_Level_Features\Train_Normalized_features.dat.
+Loading Train_Tags1k.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_buildings_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_grass_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_animal_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_water_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Groundtruth/TrainTestLabels/Labels_person_Test.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmp92erqzth\NUS_WIDE\Low_Level_Features\Test_Normalized_features.dat.
+Loading Test_Tags1k.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Groundtruth/TrainTestLabels/Labels_a_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Groundtruth/TrainTestLabels/Labels_b_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Low_Level_Features\Train_Normalized_a.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Low_Level_Features\Train_Normalized_b.dat.
+Loading Train_Tags1k.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Groundtruth/TrainTestLabels/Labels_a_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Groundtruth/TrainTestLabels/Labels_b_Train.txt.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Low_Level_Features\Train_Normalized_a.dat.
+Loading C:\Users\lenovo\AppData\Local\Temp\tmpp47o4xqo\Low_Level_Features\Train_Normalized_b.dat.
+Loading Train_Tags1k.dat.

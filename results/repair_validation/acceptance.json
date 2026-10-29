@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "unittest_count": 24,
+  "full_epochs": {
+    "baseline": 20,
+    "lfba": 20
+  },
+  "splits_identical": true,
+  "batchnorm_training_updates": {
+    "baseline": [
+      7040
+    ],
+    "lfba": [
+      7040
+    ]
+  },
+  "gpu_resume": {
+    "passed": true,
+    "epochs": 3,
+    "train_candidates": 200,
+    "seed": 100,
+    "rtol": 1e-05,
+    "atol": 1e-06,
+    "maximum_model_absolute_difference": 0.0,
+    "resumed_checkpoint": "results\\repair_validation\\smoke_gpu_retry\\resume\\last_checkpoint.pth.tar"
+  },
+  "results": {
+    "baseline": {
+      "best_epoch": 19,
+      "test": {
+        "acc": 0.7731,
+        "poison_acc": 0.7667,
+        "asr": 0.028777777777777777,
+        "target_acc": 0.853,
+        "loss": 0.6804195922374725,
+        "counts": {
+          "acc": 10000,
+          "poison_acc": 10000,
+          "asr": 9000,
+          "target_acc": 1000
+        },
+        "undefined": {}
+      }
+    },
+    "lfba": {
+      "best_epoch": 16,
+      "test": {
+        "acc": 0.7483,
+        "poison_acc": 0.1161,
+        "asr": 0.9637777777777777,
+        "target_acc": 0.737,
+        "loss": 0.7336930149078369,
+        "counts": {
+          "acc": 10000,
+          "poison_acc": 10000,
+          "asr": 9000,
+          "target_acc": 1000
+        },
+        "undefined": {}
+      }
+    }
+  },
+  "run_source_snapshot_verified": true
+}

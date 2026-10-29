@@ -1,5 +1,7 @@
 # Label-Free Backdoor Attacks in Vertical Federated Learning
 
+> 本地修复版：运行环境、参数语义、自动回归与验收结果见 [修复记录](note/08-repair-results.md)。原始说明和依赖清单保留用于溯源；当前使用既有 `D:\MyHomework\AIAIAIAI\environment\python.exe`，无需重新安装或升级依赖。新实验通过独立验证集选模，CIFAR 攻击在共享增强后执行。
+
 **The pytorch implementation of "Label-Free Backdoor Attacks in Vertical Federated Learning" (AAAI-25).**
 
 ![](./framework.svg)

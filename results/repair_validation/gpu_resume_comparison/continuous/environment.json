@@ -1,0 +1,17 @@
+{
+  "python": "3.10.18 | packaged by Anaconda, Inc. | (main, Jun  5 2025, 13:08:55) [MSC v.1929 64 bit (AMD64)]",
+  "executable": "D:\\MyHomework\\AIAIAIAI\\environment\\python.exe",
+  "torch": "2.7.1+cu126",
+  "torchvision": "0.22.1+cu126",
+  "numpy": "1.26.4",
+  "platform": "Windows-10-10.0.26100-SP0",
+  "device": "cuda:0",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "cuda": "12.6",
+  "command": [
+    "D:\\MyHomework\\AIAIAIAI\\environment\\python.exe",
+    "scripts\\acceptance_gpu_resume.py",
+    "results\\repair_validation\\smoke_gpu_retry",
+    "results\\repair_validation\\gpu_resume_comparison"
+  ]
+}

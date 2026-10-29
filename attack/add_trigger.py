@@ -1,6 +1,9 @@
 import math
 from utils.utils import *
 
+# 添加触发
+# 输入：参数、日志记录器、中毒索引、新数据、触发维度、新标签、中毒比例、模式模式、是否替换标签
+# 输出：添加触发后的数据、添加触发标签后的标签
 
 def add_trigger_to_data(args, logger, poison_indexes, new_data, trigger_dimensions, new_targets, rate, mode,
                         replace_label):
@@ -27,9 +30,12 @@ def add_trigger_to_data(args, logger, poison_indexes, new_data, trigger_dimensio
                                                                mode, replace_label)
         return new_data, new_targets
 
-
+# 添加三角形模式触发
+# 输入：参数、日志记录器、中毒索引、新数据、新标签、中毒比例、模式模式、是否替换标签
+# 输出：添加触发后的数据、添加触发标签后的标签
 def add_triangle_pattern_trigger(args, logger, poison_indexes, new_data, new_targets, rate, mode, replace_label):
     height, width, channels = new_data.shape[1:]
+    ### 遍历选中的毒化样本，添加三角形模式触发
     for idx in poison_indexes:
         if replace_label and mode == 'train':
             new_targets[idx] = args.target_label

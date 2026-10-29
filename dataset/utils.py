@@ -24,7 +24,7 @@ def get_labeled_data(data_dir, selected_label, n_samples, dtype="Train"):
     # get XA, which are image low level features
     features_path = "Low_Level_Features"
     dfs = []
-    for file in os.listdir(os.path.join(data_dir, features_path)):
+    for file in sorted(os.listdir(os.path.join(data_dir, features_path))):
         if file.startswith("_".join([dtype, "Normalized"])):
             print("Loading {}.".format(os.path.join(data_dir, features_path, file)))
             df = pd.read_csv(os.path.join(data_dir, features_path, file), header=None, sep=" ", engine="c")
@@ -61,15 +61,12 @@ def split_vfl(data, args):
         x_a = data[:, :15]
         x_b = data[:, 15:]
         return x_a, x_b
-    elif args.dataset == 'NUSWIDET':
+    elif args.dataset in ('NUSWIDE', 'NUSWIDET'):
         # 634/1000
         x_a = data[:, :634]
         x_b = data[:, 634:]
         return x_a, x_b
     elif args.dataset == 'NUSWIDEI':
-        # 1000/634
-        x_a = data[:, 634:]
-        x_b = data[:, :634]
-        return x_a, x_b
+        raise ValueError('NUSWIDEI is unsupported; use NUSWIDE (image/text order)')
     else:
         raise_dataset_exception()

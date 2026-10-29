@@ -1,0 +1,18 @@
+Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "CIFAR10", "results_dir": "results\\repair_validation\\gpu_resume_comparison\\continuous", "pretrained_checkpoint": null, "test_checkpoint": null, "feature_extractor": "", "device": 0, "seed": 100, "epoch": 3, "batch_size": 32, "client_num": 2, "start_epoch": 0, "print_steps": 100, "early_stop": 0, "pretrain_stage": 0, "target_label": 6, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 23470, "train_limit": 200, "eval_limit": 100, "lr": 0.001, "poison_rate": 0.1, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [], "_provided": ["anchor_idx", "attack", "batch_size", "data_dir", "dataset", "device", "early_stop", "epoch", "eval_limit", "poison_rate", "print_steps", "results_dir", "seed", "select_rate", "target_label", "train_limit"]}
+Split sizes train=180 validation=20 test=100
+Epoch 1 batch 1/6 loss 2.3126 train_acc 0.1250
+val epoch 1 metrics: {"acc": 0.25, "poison_acc": 0.25, "asr": 0.0, "target_acc": 0.5, "loss": 2.331505060195923, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}}
+End epoch 1 val={"acc": 0.25, "poison_acc": 0.25, "asr": 0.0, "target_acc": 0.5, "loss": 2.331505060195923, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}} best_epoch=1 score=0.125 seconds=1.87
+Constructed poison set: 18; target label: 6
+Epoch 2 attack recipients: 9
+Epoch 2 batch 1/6 loss 2.2691 train_acc 0.2188
+val epoch 2 metrics: {"acc": 0.15, "poison_acc": 0.15, "asr": 0.5, "target_acc": 1.0, "loss": 2.939023494720459, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}}
+End epoch 2 val={"acc": 0.15, "poison_acc": 0.15, "asr": 0.5, "target_acc": 1.0, "loss": 2.939023494720459, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}} best_epoch=2 score=0.325 seconds=1.14
+Epoch 3 attack recipients: 9
+Epoch 3 batch 1/6 loss 2.1102 train_acc 0.2188
+val epoch 3 metrics: {"acc": 0.05, "poison_acc": 0.05, "asr": 0.0, "target_acc": 0.0, "loss": 3.02752685546875, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}}
+End epoch 3 val={"acc": 0.05, "poison_acc": 0.05, "asr": 0.0, "target_acc": 0.0, "loss": 3.02752685546875, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}} best_epoch=2 score=0.325 seconds=0.78
+Training seconds: 3.79
+test epoch 2 metrics: {"acc": 0.17, "poison_acc": 0.18, "asr": 0.25555555555555554, "target_acc": 0.6, "loss": 2.481130428314209, "counts": {"acc": 100, "poison_acc": 100, "asr": 90, "target_acc": 10}, "undefined": {}}
+Final result: {"best_epoch": 2, "checkpoint_epoch": 2, "validation": {"acc": 0.15, "poison_acc": 0.15, "asr": 0.5, "target_acc": 1.0, "loss": 2.939023494720459, "counts": {"acc": 20, "poison_acc": 20, "asr": 18, "target_acc": 2}, "undefined": {}}, "test": {"acc": 0.17, "poison_acc": 0.18, "asr": 0.25555555555555554, "target_acc": 0.6, "loss": 2.481130428314209, "counts": {"acc": 100, "poison_acc": 100, "asr": 90, "target_acc": 10}, "undefined": {}}, "elapsed_seconds": 6.002368500000557, "peak_cuda_memory_bytes": 433500160}
+GPU_RESUME_COMPARISON_PASSED {"passed": true, "epochs": 3, "train_candidates": 200, "seed": 100, "rtol": 1e-05, "atol": 1e-06, "maximum_model_absolute_difference": 0.0, "resumed_checkpoint": "results\\repair_validation\\smoke_gpu_retry\\resume\\last_checkpoint.pth.tar"}
