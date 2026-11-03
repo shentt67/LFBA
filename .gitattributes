@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Preserve the voting algorithm's archived source checksum on Windows.
+attack/neighbor_vote.py text eol=lf
