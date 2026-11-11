@@ -26,9 +26,49 @@ pip install requirements.txt
 
 ## Example Usage
 
+### NUS-WIDE 数据准备
+
+运行 NUS-WIDE 实验前需要单独下载数据。本项目使用预先提取的图像和文本特征，无需下载原始图片。
+
+1. 从 [NUS-WIDE 官方仓库的数据入口](https://github.com/NExTplusplus/NUS-WIDE) 获取 `NUS-WIDE.zip`（标签）和 `NUS_WID_Tags.zip`（文本特征）。
+2. 另从 [OpenDataLab NUS-WIDE 文件列表](https://opendatalab.com/OpenDataLab/NUS-WIDE/tree/main/raw) 获取 `NUS_WID_Low_Level_Features.rar`（低层图像特征）；该列表也提供 `Groundtruth.zip`。官方入口中的两个 ZIP 不包含本项目需要的低层图像特征。
+3. 解压并整理为以下结构，避免压缩包造成多一层同名目录。保留特征原始文件名和行顺序；图像特征使用原来的 `Train_Normalized*` / `Test_Normalized*` 文件，合计应为 634 列，文本特征为 1000 列。不要混入其他维度的特征。
+
+```text
+data/
+└── NUS_WIDE/
+    ├── Groundtruth/
+    │   └── TrainTestLabels/
+    │       ├── Labels_buildings_Train.txt
+    │       ├── Labels_buildings_Test.txt
+    │       └── ...（grass、animal、water、person 的 Train/Test 标签）
+    ├── Low_Level_Features/
+    │   ├── Train_Normalized*.dat
+    │   └── Test_Normalized*.dat
+    └── NUS_WID_Tags/
+        ├── Train_Tags1k.dat
+        └── Test_Tags1k.dat
+```
+
+`--data_dir` 指向 `NUS_WIDE` 的父目录，例如外部数据放在 `D:\Datasets\NUS_WIDE` 时使用 `--data_dir D:\Datasets`。默认是当前工作目录下的 `./data/`。
+
+可先检查文件是否齐全（不启动训练；在项目目录、现有 Conda 环境中执行）：
+
+```powershell
+python -c "from dataset.utils import validate_nuswide_files; validate_nuswide_files('data/NUS_WIDE', ['buildings','grass','animal','water','person']); print('NUS-WIDE files OK')"
+```
+
+检查通过后用下面的命令短训一轮，再启动完整实验。文件检查仅验证必需路径；加载时会进一步检查维度及行数，锚点索引也会在训练前验证。
+
+```powershell
+python main.py --device 0 --dataset NUSWIDE --epoch 1 --batch_size 256 --lr 0.001 --attack LFBA --anchor_idx 33930 --poison_rate 0.1 --poison_dimensions 10 --select_rate 0.3
+```
+
+如果下载入口不可访问或需要登录，请先通过浏览器完成下载，再按上述结构放置文件。数据未准备完整时程序会列出缺失项。
+
 For instance, to perform backdoor attacks with LFBA on the NUS-WIDE dataset, run:
 ```bash
-python main.py --device 0 --dataset NUSWIDE --epoch 100 --batch_size 256 --lr 0.001 --attack LFBA --anchor_idx 33930 --poison_rate 0.1 --poison_dimensions 10 --select_replace --select_rate 0.3
+python main.py --device 0 --dataset NUSWIDE --epoch 100 --batch_size 256 --lr 0.001 --attack LFBA --anchor_idx 33930 --poison_rate 0.1 --poison_dimensions 10 --select_rate 0.3
 ```
 
 For CIFAR-10 dataset:

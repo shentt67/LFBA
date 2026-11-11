@@ -1,16 +1,15 @@
 """Shared repaired training with method-specific online construction and budgets."""
 import random
 import time
-from pathlib import Path
 
 import numpy as np
 import torch
 
 from attack.neighbor_vote import select_all
 from dataset.utils import split_vfl
-from utils.checkpoint import atomic_save, capture_rng, cpu_tree
+from utils.checkpoint import capture_rng, cpu_tree
 from utils.trainer import Trainer
-from lfba_comparison.common import digest, write_json
+from lfba_comparison.common import digest
 from lfba_comparison.policy import fixed_choice, purity, schedule
 
 
@@ -89,7 +88,7 @@ class ComparisonTrainer(Trainer):
         if self.method == 'capture' or ep < self.clean_window:
             if self.current_plan: raise ValueError('Poisoning in clean prefix')
             return
-        count = int(len(self.train_loader.dataset)*.1)
+        count = int(len(self.train_loader.dataset)*self.args.poison_rate)
         if self.choice is None:
             if [o['epoch'] for o in self.observations] != list(range(1,self.clean_window+1)):
                 raise ValueError('Missing required online clean observations')
@@ -97,12 +96,10 @@ class ComparisonTrainer(Trainer):
             if self.method == 'auto_vote':
                 selection = select_all(self.observations,count,self.args.block_size,str(self.device))
                 self.choice = selection['results']['auto_vote']
-                atomic_save(selection,Path(self.args.results_dir)/'selection.pt')
             else:
-                self.choice = fixed_choice(self.observations,self.method,count)
+                self.choice = fixed_choice(self.observations,self.method,count,self.args.anchor_idx)
             self.epoch_selection_seconds = time.perf_counter()-started
             self.selection_seconds += self.epoch_selection_seconds
-            write_json(Path(self.args.results_dir)/'choice.json',self.choice)
             self._bind_target()
         candidates = self.choice['candidates']
         if self.poison_indexes is None: self.poison_indexes = list(candidates)
@@ -113,7 +110,7 @@ class ComparisonTrainer(Trainer):
         norms = self.grad_vec_epoch[positions].norm(dim=1)
         if not torch.isfinite(norms).all(): raise ValueError('Nonfinite hard-sample gradient')
         order = np.lexsort((ids[positions].numpy(),-norms.numpy()))
-        replacements = schedule(self.method,self.args.epoch,count)[ep]
+        replacements = schedule(self.method,self.args.epoch,count,self.args.select_rate)[ep]
         recipients = ids[positions[torch.as_tensor(order[:replacements].copy())]].tolist()
         donors = self.donor_rng.sample(sorted(set(self.train_loader.dataset.ids)-set(candidates)),replacements)
         self.current_plan = dict(zip(recipients,donors))

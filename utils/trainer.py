@@ -10,6 +10,7 @@ import torch
 from attack.attack import get_near_index
 from dataset.utils import split_vfl
 from utils.config import attack_start_epoch
+from utils.artifacts import runtime_checkpoint, save_experiment_data, save_configuration
 from utils.checkpoint import VERSION, cpu_tree, capture_rng, restore_rng, atomic_save
 
 
@@ -43,6 +44,7 @@ class Trainer:
         self.best_state_dict=None
         self.no_change=0
         self.history=[]
+        self.plans=[]
         self.completed_epoch=0
         self._static_ready=False
 
@@ -127,6 +129,7 @@ class Trainer:
         self.completed_epoch=ck['epoch']
         for key in ('best_score','best_epoch','best_metrics','best_state_dict','no_change','history'):
             setattr(self,key,cpu_tree(ck[key]))
+        self.plans=cpu_tree(ck.get('plans', []))
         attack=ck['attack_state']
         for key in ('poison_indexes','grad_vec_epoch','indexes_epoch','target_epoch','current_plan','label_overrides'):
             setattr(self,key,cpu_tree(attack[key]))
@@ -140,7 +143,7 @@ class Trainer:
                     state_dict=cpu_tree([m.state_dict() for m in self.model_list]),
                     optimizer=cpu_tree([o.state_dict() for o in self.optimizer_list]),
                     best_score=self.best_score,best_epoch=self.best_epoch,best_metrics=self.best_metrics,
-                    best_state_dict=self.best_state_dict,no_change=self.no_change,history=self.history,
+                    best_state_dict=self.best_state_dict,no_change=self.no_change,history=self.history,plans=cpu_tree(self.plans),
                     config=cpu_tree(vars(self.args)),trigger_dimensions=self.trigger_dimensions,
                     data_state=self.data_state,rng_state=capture_rng(self._loaders()),
                     attack_state=dict(poison_indexes=self.poison_indexes,grad_vec_epoch=self.grad_vec_epoch,
@@ -215,15 +218,13 @@ class Trainer:
             self.history.append(dict(epoch=ep+1,train_loss=loss_sum/total,train_acc=correct/total,
                                      validation=metrics,score=score))
             self.completed_epoch=ep+1
+            if not hasattr(self, 'comparison_method') and not hasattr(self, 'method'):
+                self.plans.append(dict(epoch=ep+1,recipients=list(self.current_plan),
+                                       donors=list(self.current_plan.values()),label_overrides=self.label_overrides.copy()))
+            save_configuration(directory,self)
+            save_experiment_data(directory,self)
             snapshot=self._snapshot()
-            atomic_save(snapshot,directory/'last_checkpoint.pth.tar')
-            if improved:
-                atomic_save(snapshot,directory/'best_checkpoint.pth.tar')
-            # Restore a best checkpoint in a new output directory even without later improvements.
-            if self.best_state_dict is not None and not (directory/'best_checkpoint.pth.tar').exists():
-                evaluation_snapshot=dict(snapshot,state_dict=self.best_state_dict,epoch=self.best_epoch,
-                                         evaluation_only=True)
-                atomic_save(evaluation_snapshot,directory/'best_checkpoint.pth.tar')
+            atomic_save(snapshot,runtime_checkpoint(directory))
             self.logger.info('End epoch %d val=%s best_epoch=%d score=%s seconds=%.2f',
                              ep+1,json.dumps(metrics),self.best_epoch,self.best_score,time.perf_counter()-epoch_start)
             if self.args.early_stop and self.no_change>=self.args.early_stop:

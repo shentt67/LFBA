@@ -27,18 +27,24 @@ class EntryTests(unittest.TestCase):
 
     def test_train_evaluate_resume_and_reject_configuration_drift(self):
         from main import main
-        with tempfile.TemporaryDirectory() as tmp, patch('main.build_datasets',side_effect=small_data):
+        with tempfile.TemporaryDirectory() as tmp, patch('main.build_datasets',side_effect=small_data), patch('main.cleanup_runtime'):
             output=Path(tmp)/'first'
             flags=['--dataset','PHISHING','--attack','LFBA','--anchor_idx','1','--poison_rate','.2',
                    '--select_rate','.5','--batch_size','4','--epoch','2','--device','-1','--early_stop','0',
                    '--results_dir',str(output)]
             first=main(parse_args(flags))
             self.assertTrue((output/'metrics.json').exists())
-            best=output/'best_checkpoint.pth.tar'
+            self.assertFalse((output/'environment.json').exists())
+            self.assertFalse((output/'best_checkpoint.pth.tar').exists())
+            # Reconstruct an evaluation-only fixture from the retained last state.
+            state=torch.load(output/'.runtime'/'last_checkpoint.pth.tar',weights_only=True)
+            state.update(state_dict=state['best_state_dict'],epoch=state['best_epoch'],evaluation_only=True)
+            best=Path(tmp)/'evaluation_fixture.pth.tar'
+            torch.save(state,best)
             evaluated=main(parse_args(['--test_checkpoint',str(best),'--device','-1',
                                        '--results_dir',str(Path(tmp)/'eval')]))
             self.assertEqual(first['test'],evaluated['test'])
-            last=output/'last_checkpoint.pth.tar'
+            last=output/'.runtime'/'last_checkpoint.pth.tar'
             last_state=torch.load(last,weights_only=True)
             last_eval=main(parse_args(['--test_checkpoint',str(last),'--device','-1',
                                        '--results_dir',str(Path(tmp)/'eval_last')]))
@@ -47,7 +53,7 @@ class EntryTests(unittest.TestCase):
             self.assertEqual(last_eval['best_epoch'],last_state['best_epoch'])
             main(parse_args(['--pretrained_checkpoint',str(last),'--epoch','3','--device','-1',
                              '--results_dir',str(Path(tmp)/'resumed')]))
-            ck=torch.load(Path(tmp)/'resumed'/'last_checkpoint.pth.tar',weights_only=True)
+            ck=torch.load(Path(tmp)/'resumed'/'.runtime'/'last_checkpoint.pth.tar',weights_only=True)
             self.assertEqual(ck['epoch'],3)
             with self.assertRaisesRegex(ValueError,'batch_size'):
                 main(parse_args(['--pretrained_checkpoint',str(last),'--batch_size','8']))

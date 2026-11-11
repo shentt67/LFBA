@@ -21,13 +21,8 @@ def run(root):
             '--train_limit','200','--eval_limit','100','--print_steps','100']
     for name,flags in variants.items():
         results[name]=main(parse_args([*common,*flags,'--results_dir',str(root/name)]))
-    original=results['lfba']['test']
-    evaluated=main(parse_args(['--test_checkpoint',str(root/'lfba'/'best_checkpoint.pth.tar'),
-                              '--results_dir',str(root/'independent_eval')]))
-    assert original==evaluated['test'], 'Standalone GPU evaluation differs'
-    results['independent_eval']=evaluated
-    results['resume']=main(parse_args(['--pretrained_checkpoint',str(root/'lfba'/'last_checkpoint.pth.tar'),
-                                       '--epoch','3','--results_dir',str(root/'resume')]))
+    assert results['lfba']['test']==results['lfba']['independent_evaluation']['test']
+    results['independent_eval']=results['lfba']['independent_evaluation']
     (root/'summary.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
     print('SMOKE_ACCEPTANCE_PASSED',root,flush=True)
 

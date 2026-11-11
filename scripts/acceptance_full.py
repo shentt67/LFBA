@@ -1,5 +1,4 @@
 """The approved seed-100, 20-epoch baseline/LFBA comparison."""
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -14,10 +13,6 @@ from utils.checkpoint import load_checkpoint
 
 def run(root):
     root.mkdir(parents=True,exist_ok=True)
-    sources={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
-             for folder in ['attack','dataset','models','utils'] for p in (ROOT/folder).glob('*.py')}
-    sources['main.py']=hashlib.sha256((ROOT/'main.py').read_bytes()).hexdigest()
-    (root/'source_hashes.json').write_text(json.dumps(sources,indent=2),encoding='utf-8')
     common=['--dataset','CIFAR10','--data_dir',str(ROOT/'data'),'--device','0',
             '--epoch','20','--batch_size','128','--seed','100','--early_stop','0',
             '--lr','.001','--anchor_idx','23470','--target_label','6',

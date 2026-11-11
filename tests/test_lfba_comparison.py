@@ -41,7 +41,8 @@ class View:
 
 def trainer(directory,method,checkpoint=None):
     args=SimpleNamespace(seed=106,epoch=20,lr=.001,comparison_method=method,
-        anchor_idx=ANCHOR,target_label=0,block_size=128,results_dir=str(directory))
+        anchor_idx=ANCHOR,target_label=0,block_size=128,results_dir=str(directory),
+        poison_rate=.1,select_rate=.5)
     loader=SimpleNamespace(dataset=View(),generator=torch.Generator().manual_seed(7))
     obj=ComparisonTrainer(torch.device('cpu'),[],[],None,[],None,loader,None,None,[],
         logging.getLogger('comparison-test'),args,checkpoint,data_state=dict(train_ids=View.ids))
@@ -52,21 +53,20 @@ def trainer(directory,method,checkpoint=None):
 
 class PolicyTests(unittest.TestCase):
     def test_exact_formal_budgets_and_epochs(self):
-        raw=schedule('lfba_original',20,4500);matched=schedule('lfba_matched',20,4500);vote=schedule('auto_vote',20,4500)
+        raw=schedule('lfba_original',20,4500);vote=schedule('auto_vote',20,4500)
         self.assertEqual(raw,[0]+[2250]*19)
-        self.assertEqual(matched,[0]+[2014]*3+[2013]*16)
         self.assertEqual(vote,[0]*3+[2250]*17)
-        self.assertEqual([sum(raw),sum(matched),sum(vote)],[42750,38250,38250])
+        self.assertEqual([sum(raw),sum(vote)],[42750,38250])
 
     def test_smoke_schedule_generalization(self):
         self.assertEqual(schedule('lfba_original',5,18),[0,9,9,9,9])
-        self.assertEqual(schedule('lfba_matched',5,18),[0,5,5,4,4])
+        with self.assertRaises(ValueError):schedule('lfba_matched',5,18)
         self.assertEqual(schedule('auto_vote',5,18),[0,0,0,9,9])
 
     def test_baseline_is_identical_to_existing_legacy_sort_and_only_first_round(self):
         obs=observations();ids=obs[0]['ids'];g=obs[0]['gradients']
         expected=sorted(ids[get_near_index(g[0],g,4,'legacy_l1',ids)].tolist())
-        for method in METHODS[:2]:self.assertEqual(fixed_choice(obs,method,4)['candidates'],expected)
+        for method in ('lfba_original',):self.assertEqual(fixed_choice(obs,method,4)['candidates'],expected)
         obs[1]['gradients'].fill_(float('nan'));obs[2]['gradients'].fill_(0)
         self.assertEqual(fixed_choice(obs,'lfba_original',4)['candidates'],expected)
 
@@ -106,14 +106,14 @@ class StateTests(unittest.TestCase):
                 obj.poison_indexes=[]
                 with self.assertRaises(ValueError):obj._configure_attack(window+2)
 
-    def test_baselines_share_candidates_and_vote_uses_existing_selector(self):
+    def test_baseline_and_vote_use_their_declared_selectors(self):
         with tempfile.TemporaryDirectory() as directory:
             choices=[]
             for method in METHODS:
                 output=Path(directory)/method;output.mkdir();obj=trainer(output,method)
                 obj._configure_attack(3 if method=='auto_vote' else 1);choices.append(obj.choice)
-            self.assertEqual(choices[0]['candidates'],choices[1]['candidates'])
-            self.assertEqual(choices[2],select_all(observations(),4)['results']['auto_vote'])
+            self.assertEqual(choices[0],fixed_choice(observations(),'lfba_original',4))
+            self.assertEqual(choices[1],select_all(observations(),4)['results']['auto_vote'])
 
     def test_resume_restores_policy_history_budget_and_donor_rng(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -140,7 +140,7 @@ class StateTests(unittest.TestCase):
             with patch('utils.trainer.capture_rng',return_value={'fixed':1}):prefix=capture._snapshot()
             before=digest(prefix)
             recorded=[]
-            for method in ('lfba_original','lfba_matched','auto_vote'):
+            for method in METHODS:
                 other=trainer(directory,method,prefix)
                 other_parameter=torch.nn.Parameter(torch.tensor([1.]))
                 other_optimizer=torch.optim.Adam([other_parameter],lr=.001)
@@ -253,12 +253,12 @@ class ReportTests(unittest.TestCase):
                 timing={'shared_first_round':1},peak_host_memory_bytes=1,peak_cuda_memory_bytes=0))
         return rows
 
-    def test_thresholds_and_shared_candidates(self):
+    def test_thresholds_and_shared_start_state(self):
         rows=sum([self.records(seed) for seed in (106,107,108)],[])
         result=summarize(rows)
         self.assertTrue(result['lfba_original']['meets_threshold'])
-        self.assertTrue(result['lfba_matched']['meets_threshold'])
-        rows[1]['candidate_digest']='different'
+        self.assertNotIn('lfba_matched',result)
+        rows[1]['start_state']='different'
         with self.assertRaises(ValueError):summarize(rows)
 
     def test_report_uses_only_synthetic_saved_records(self):
@@ -281,7 +281,8 @@ class ReportTests(unittest.TestCase):
                 write_report(root)
             self.assertTrue((root/'validation_curves_lfba_vs_vote.png').exists())
             self.assertFalse(read_json(root/'summary.json')['formal_verdict_applicable'])
-            self.assertTrue((root/'budget_check.csv').exists())
+            self.assertTrue(read_json(root/'summary.json')['budget_checks'])
+            self.assertFalse((root/'budget_check.csv').exists())
 
 
 if __name__=='__main__':unittest.main()

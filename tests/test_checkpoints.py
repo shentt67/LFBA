@@ -21,7 +21,7 @@ class CheckpointTests(unittest.TestCase):
             first=make_trainer(Path(tmp)/'part',attack='LFBA',epoch=2)
             with patch.object(first,'test',return_value=fixed):
                 first.train()
-            ck=torch.load(Path(tmp)/'part'/'last_checkpoint.pth.tar',weights_only=True)
+            ck=torch.load(Path(tmp)/'part'/'.runtime'/'last_checkpoint.pth.tar',weights_only=True)
             self.assertTrue(ck['attack_state']['current_plan'])
             resumed=make_trainer(Path(tmp)/'resumed',attack='LFBA',epoch=4)
             resumed.checkpoint=ck
@@ -33,9 +33,9 @@ class CheckpointTests(unittest.TestCase):
             for a,b in zip(full.model_list,resumed.model_list):
                 for k,v in a.state_dict().items():
                     torch.testing.assert_close(v,b.state_dict()[k],rtol=0,atol=0)
-            restored_best=torch.load(Path(tmp)/'resumed'/'best_checkpoint.pth.tar',weights_only=True)
-            self.assertTrue(restored_best['evaluation_only'])
-            for a,b in zip(full.best_state_dict,restored_best['state_dict']):
+            self.assertFalse(list(Path(tmp).rglob('best_checkpoint.pth.tar')))
+            restored_last=torch.load(Path(tmp)/'resumed'/'.runtime'/'last_checkpoint.pth.tar',weights_only=True)
+            for a,b in zip(full.best_state_dict,restored_last['best_state_dict']):
                 for k,v in a.items():
                     torch.testing.assert_close(v,b[k],rtol=0,atol=0)
 
@@ -47,7 +47,7 @@ class CheckpointTests(unittest.TestCase):
             set_seed(100)
             first=make_trainer(Path(tmp)/'part',attack='LFBA',epoch=1)
             first.train()
-            path=Path(tmp)/'part'/'last_checkpoint.pth.tar'
+            path=Path(tmp)/'part'/'.runtime'/'last_checkpoint.pth.tar'
             self.assertTrue(path.exists(),'save every completed epoch, not only improvements')
             checkpoint=torch.load(path,map_location='cpu',weights_only=True)
             resumed=make_trainer(Path(tmp)/'resume',attack='LFBA',epoch=3)

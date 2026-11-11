@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import functional as TF
-from .utils import get_labeled_data
+from .utils import get_labeled_data, validate_nuswide_files
 from PIL import Image
 import os
 import os.path
@@ -134,6 +134,7 @@ class UCIHAR_VFL(Dataset):
 
 class NUSWIDE_VFL(Dataset):
     def __init__(self, root, selected_labels, train, transforms):
+        validate_nuswide_files(os.path.join(root, 'NUS_WIDE'), selected_labels)
         if train:
             X_image, X_text, Y = get_labeled_data(os.path.join(root, 'NUS_WIDE'), selected_labels, None, 'Train')
             self.data = torch.cat((torch.tensor(X_image), torch.tensor(X_text)), dim=1)

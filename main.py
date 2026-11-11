@@ -4,8 +4,6 @@ import json
 import logging
 import os
 from pathlib import Path
-import platform
-import sys
 import time
 from types import SimpleNamespace
 
@@ -19,7 +17,9 @@ from models.CIFAR10_models import GlobalModelForCifar10, LocalModelForCifar10
 from models.UCIHAR_models import GlobalModelForUCIHAR, LocalModelForUCIHAR
 from models.PHISHING_models import GlobalModelForPHISHING, LocalModelForPHISHING
 from models.NUSWIDE_models import GlobalModelForNUSWIDE, LocalModelForNUSWIDE
-from utils.checkpoint import VERSION, load_checkpoint
+from utils.checkpoint import VERSION, load_checkpoint, cpu_tree
+from utils.artifacts import save_configuration, save_experiment_data, verify_saved_result, cleanup_runtime
+from lfba_comparison.common import batch_lock, write_json, digest
 from utils.config import parse_args, validate_args
 from utils.trainer import Trainer
 from utils.utils import set_seed
@@ -121,6 +121,11 @@ def validate_data(args,train,val,test):
 
 def main(args):
     args,checkpoint=resolve_checkpoint(args)
+    with batch_lock(Path(args.results_dir)):
+        return _run_experiment(args,checkpoint)
+
+
+def _run_experiment(args,checkpoint):
     args.data_dir=str(Path(args.data_dir).resolve())
     output=Path(args.results_dir)
     # Never overwrite historical or completed experiment outputs accidentally.
@@ -165,13 +170,7 @@ def main(args):
                         loaders['test'],loaders['test_asr'],dims,logger,args,
                         checkpoint if args.pretrained_checkpoint else None,
                         loaders['val'],loaders['val_asr'],data_state)
-        environment=dict(python=sys.version,executable=sys.executable,torch=str(torch.__version__),
-                         torchvision=__import__('torchvision').__version__,numpy=np.__version__,
-                         platform=platform.platform(),device=str(device),
-                         gpu=torch.cuda.get_device_name(device) if device.type=='cuda' else None,
-                         cuda=torch.version.cuda,command=[sys.executable,*sys.argv])
-        (output/'config.json').write_text(json.dumps(vars(args),indent=2),encoding='utf-8')
-        (output/'environment.json').write_text(json.dumps(environment,indent=2),encoding='utf-8')
+        save_configuration(output,trainer)
         logger.info('Configuration: %s',json.dumps(vars(args)))
         logger.info('Split sizes train=%d validation=%d test=%d',len(train),len(val),len(test))
         if args.test_checkpoint:
@@ -192,12 +191,26 @@ def main(args):
             best_epoch=trainer.best_epoch
             evaluated_epoch=best_epoch
             validation=trainer.best_metrics
-            (output/'history.json').write_text(json.dumps(trainer.history,indent=2),encoding='utf-8')
+
         metrics=trainer.test(evaluated_epoch-1)
+        evaluation_state=cpu_tree([m.state_dict() for m in models])
+        independent_models=[model.to(device) for model in build_models(args)]
+        for model,state in zip(independent_models,evaluation_state):
+            model.load_state_dict(state)
+        evaluator=copy.copy(trainer)
+        evaluator.model_list=independent_models
+        independent=evaluator.test(evaluated_epoch-1)
+        if independent!=metrics:
+            raise ValueError('Independent evaluation differs')
+        save_experiment_data(output,trainer)
         result=dict(best_epoch=best_epoch,checkpoint_epoch=evaluated_epoch,validation=validation,test=metrics,
                     elapsed_seconds=time.perf_counter()-started,
-                    peak_cuda_memory_bytes=torch.cuda.max_memory_allocated(device) if device.type=='cuda' else 0)
-        (output/'metrics.json').write_text(json.dumps(result,indent=2,allow_nan=False),encoding='utf-8')
+                    peak_cuda_memory_bytes=torch.cuda.max_memory_allocated(device) if device.type=='cuda' else 0,
+                    status='complete',independent_evaluation=dict(epoch=evaluated_epoch,test=independent,
+                    final_model_digest=digest(evaluation_state)))
+        write_json(output/'metrics.json',result)
+        verify_saved_result(output,result,trainer)
+        cleanup_runtime(output)
         logger.info('Final result: %s',json.dumps(result))
         return result
     finally:

@@ -80,7 +80,10 @@ def batch_lock(root):
     """OS releases the lock on process exit, including after a crash."""
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
-    with (root / 'batch.lock').open('a+b') as stream:
+    lock_root = Path(tempfile.gettempdir()) / 'lfba-batch-locks'
+    lock_root.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha256(os.path.normcase(str(root.resolve())).encode('utf-8')).hexdigest()
+    with (lock_root / (key + '.lock')).open('a+b') as stream:
         if stream.tell() == 0:
             stream.write(b'0'); stream.flush()
         stream.seek(0)

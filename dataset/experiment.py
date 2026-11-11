@@ -104,7 +104,7 @@ def fingerprint(base):
 
 
 def build_datasets(args,state=None):
-    anchor=args.anchor_idx if args.attack=='LFBA' else None
+    anchor=args.anchor_idx if args.attack=='LFBA' and getattr(args,'retain_anchor',True) else None
     transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize(
         (.4914,.4822,.4465),(.2023,.1994,.2010))])
     phishing_state=None
