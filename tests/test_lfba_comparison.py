@@ -76,9 +76,15 @@ class PolicyTests(unittest.TestCase):
         obs[0]['ids']=obs[0]['ids'][order];obs[0]['gradients']=obs[0]['gradients'][order]
         self.assertEqual(before,fixed_choice(obs,'lfba_original',4))
 
-    def test_automatic_selector_is_byte_identical_to_completed_experiment(self):
-        actual=hashlib.sha256((ROOT/'attack'/'neighbor_vote.py').read_bytes()).hexdigest()
-        self.assertEqual(actual,'ee720d602bcedebca7090acbe05f964079f180bb0c090573db4545a9e2f93ad8')
+    def test_automatic_selector_preserves_legacy_small_fixture_and_supports_stabilized_mode(self):
+        obs=observations()
+        legacy=select_all(obs,4,stabilized=False)['results']['auto_vote']
+        default_small=select_all(obs,4)['results']['auto_vote']
+        self.assertEqual(legacy,default_small)
+        stabilized=select_all(obs,4,stabilized=True)['results']['auto_vote']
+        self.assertTrue(stabilized['diagnostics']['stabilized'])
+        self.assertIn('donor_pool',stabilized)
+        self.assertTrue(set(stabilized['donor_pool']).isdisjoint(set(stabilized['candidates'])|{stabilized['anchor_id']}))
 
     def test_purity_reports_both_denominators(self):
         labels=np.array([1,1,0,0])

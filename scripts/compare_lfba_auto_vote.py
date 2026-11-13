@@ -31,6 +31,8 @@ def parse_options(argv=None):
     parser.add_argument('--block-size',type=int,default=128)
     parser.add_argument('--poison-rate',type=float,default=.1)
     parser.add_argument('--select-rate',type=float,default=.5)
+    parser.add_argument('--poison-dimensions',type=int,default=None)
+    parser.add_argument('--trigger-feature-clip',type=float,default=None)
     parser.add_argument('--dataset',choices=('CIFAR10','UCIHAR','NUSWIDE','NUSWID'),default=('CIFAR10'))
     parser.add_argument('--anchor-source',choices=('fixed','auto_vote'),default=None)
     parser.add_argument('--data-dir',type=Path,default=default_data_directory(ROOT))
@@ -76,6 +78,8 @@ def parse_options(argv=None):
         options.output=ROOT/'results'/('lfba_stability_full_smoke' if options.smoke else 'lfba_stability_full') if options.stability else ROOT/'results'/('lfba_auto_vote_smoke' if options.smoke else 'lfba_auto_vote_formal')
         if options.dataset=='NUSWIDE':
             options.output=ROOT/'results'/('nuswide_lfba_auto_vote_smoke' if options.smoke else 'nuswide_lfba_auto_vote_formal')
+        elif options.dataset=='UCIHAR':
+            options.output=ROOT/'results'/('ucihar_lfba_auto_vote_smoke' if options.smoke else 'ucihar_lfba_auto_vote_formal')
     options.output=options.output.resolve();options.data_dir=options.data_dir.resolve();options.code_root=ROOT
     return options
 

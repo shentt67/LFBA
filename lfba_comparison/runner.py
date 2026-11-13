@@ -57,9 +57,21 @@ def configuration(options,seed,method,output,anchor=None):
         '--pretrain_stage',
         '3' if method=='auto_vote' else '1','--print_steps','200','--target_label','0']
     if options.smoke: flags+=['--train_limit','500','--eval_limit','100']
+    poison_dims=getattr(options,'poison_dimensions',None)
+    trigger_clip=getattr(options,'trigger_feature_clip',None)
     if options.dataset=='NUSWIDE':
         from lfba_comparison.nuswide import POISON_DIMENSIONS
-        flags+=['--poison_dimensions',str(POISON_DIMENSIONS)]
+        flags+=['--poison_dimensions',str(POISON_DIMENSIONS if poison_dims is None else poison_dims)]
+        if trigger_clip is not None:
+            flags+=['--trigger_feature_clip',str(trigger_clip)]
+    elif options.dataset=='UCIHAR':
+        flags+=['--poison_dimensions',str(20 if poison_dims is None else poison_dims),
+                '--trigger_feature_clip',str(2.5 if trigger_clip is None else trigger_clip)]
+    else:
+        if poison_dims is not None:
+            flags+=['--poison_dimensions',str(poison_dims)]
+        if trigger_clip is not None:
+            flags+=['--trigger_feature_clip',str(trigger_clip)]
     args=parse_args(flags)
     args.retain_anchor=not getattr(options,'stability',False) or options.anchor_source=='fixed'
     args.comparison_method=method
@@ -128,9 +140,12 @@ def verify_checkpoint(checkpoint,method,epochs,prefix,poison_rate=.1,select_rate
         raise ValueError('Trigger dimensions differ from shared prefix')
     if choice['anchor_id']!=checkpoint['config']['anchor_idx']:
         raise ValueError('Choice anchor differs from configured anchor')
-    count=int(len(prefix['data_state']['train_ids'])*poison_rate)
+    max_count=int(len(prefix['data_state']['train_ids'])*poison_rate)
     candidates=choice['candidates'];pool=set(candidates)
-    if len(pool)!=count or len(candidates)!=count or not pool<=set(prefix['data_state']['train_ids']):
+    count=len(candidates)
+    if (len(pool)!=count or not 1<=count<=max_count
+            or (method!='auto_vote' and count!=max_count)
+            or not pool<=set(prefix['data_state']['train_ids'])):
         raise ValueError('Candidate count or membership differs')
     clean=3 if method=='auto_vote' else 1
     expected=schedule(method,epochs,count,select_rate)

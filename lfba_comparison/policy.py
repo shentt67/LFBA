@@ -4,8 +4,8 @@ import torch
 from attack.attack import get_near_index
 
 METHODS = ('lfba_original', 'auto_vote')
-ANCHOR = 2370
-ANCHORS = {'CIFAR10': ANCHOR, 'UCIHAR': 27, 'NUSWIDE': 3390}
+ANCHOR = 23470
+ANCHORS = {'CIFAR10': ANCHOR, 'UCIHAR': 0, 'NUSWIDE': 33930}
 
 
 def schedule(method, epochs, candidate_count, select_rate=.5):

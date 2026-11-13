@@ -1,4 +1,5 @@
 """Shared repaired training with method-specific online construction and budgets."""
+from collections import Counter
 import random
 import time
 
@@ -11,6 +12,33 @@ from utils.checkpoint import capture_rng, cpu_tree
 from utils.trainer import Trainer
 from lfba_comparison.common import digest
 from lfba_comparison.policy import fixed_choice, purity, schedule
+
+
+def _recipient_order(ids_subset, grad_subset, plans, stabilized=False):
+    """Rank candidate positions for replacement using direction gating and exposure decay when stabilized."""
+    norms = grad_subset.norm(dim=1)
+    if not torch.isfinite(norms).all():
+        raise ValueError('Nonfinite hard-sample gradient')
+    if not stabilized:
+        return np.lexsort((ids_subset.numpy(), -norms.numpy()))
+    unit_grads = grad_subset / norms.unsqueeze(1).clamp_min(1e-12)
+    mean_dir = unit_grads.mean(dim=0)
+    mean_norm = float(mean_dir.norm().item())
+    if mean_norm > 1e-12:
+        cos_to_pool = (unit_grads @ (mean_dir / mean_norm)).cpu().numpy()
+    else:
+        cos_to_pool = np.ones(len(ids_subset), dtype=np.float64)
+    # Candidates aligned with the candidate-pool mean direction get normal weight;
+    # opposing directions (cos <= 0, e.g. wrong-class outliers) are strongly attenuated.
+    dir_weight = np.where(
+        cos_to_pool > 0.0,
+        0.5 + 0.5 * cos_to_pool,
+        0.05 * np.exp(2.0 * np.clip(cos_to_pool, -1.0, 0.0)),
+    )
+    used = Counter(int(r) for plan in plans for r in plan.get('recipients', []))
+    exposures = np.asarray([used.get(int(i), 0) for i in ids_subset.tolist()], dtype=np.float64)
+    priority = (norms.cpu().numpy() * dir_weight) / np.power(1.0 + exposures, 0.75)
+    return np.lexsort((ids_subset.numpy(), -priority))
 
 
 class ComparisonTrainer(Trainer):
@@ -88,31 +116,35 @@ class ComparisonTrainer(Trainer):
         if self.method == 'capture' or ep < self.clean_window:
             if self.current_plan: raise ValueError('Poisoning in clean prefix')
             return
-        count = int(len(self.train_loader.dataset)*self.args.poison_rate)
+        requested_count = int(len(self.train_loader.dataset)*self.args.poison_rate)
         if self.choice is None:
             if [o['epoch'] for o in self.observations] != list(range(1,self.clean_window+1)):
                 raise ValueError('Missing required online clean observations')
             started = time.perf_counter()
             if self.method == 'auto_vote':
-                selection = select_all(self.observations,count,self.args.block_size,str(self.device))
+                selection = select_all(self.observations,requested_count,self.args.block_size,str(self.device))
                 self.choice = selection['results']['auto_vote']
             else:
-                self.choice = fixed_choice(self.observations,self.method,count,self.args.anchor_idx)
+                self.choice = fixed_choice(self.observations,self.method,requested_count,self.args.anchor_idx)
             self.epoch_selection_seconds = time.perf_counter()-started
             self.selection_seconds += self.epoch_selection_seconds
             self._bind_target()
         candidates = self.choice['candidates']
+        candidate_count = len(candidates)
         if self.poison_indexes is None: self.poison_indexes = list(candidates)
         if self.poison_indexes != candidates: raise ValueError('Frozen candidates changed')
         ids = self.indexes_epoch
         positions = torch.nonzero(torch.isin(ids,torch.tensor(candidates))).flatten()
-        if len(positions) != count: raise ValueError('Candidate IDs missing')
-        norms = self.grad_vec_epoch[positions].norm(dim=1)
-        if not torch.isfinite(norms).all(): raise ValueError('Nonfinite hard-sample gradient')
-        order = np.lexsort((ids[positions].numpy(),-norms.numpy()))
-        replacements = schedule(self.method,self.args.epoch,count,self.args.select_rate)[ep]
+        if len(positions) != candidate_count: raise ValueError('Candidate IDs missing')
+        stabilized = bool(self.method == 'auto_vote' and self.choice.get('diagnostics', {}).get('stabilized'))
+        order = _recipient_order(ids[positions], self.grad_vec_epoch[positions], self.plans, stabilized=stabilized)
+        replacements = schedule(self.method,self.args.epoch,candidate_count,self.args.select_rate)[ep]
         recipients = ids[positions[torch.as_tensor(order[:replacements].copy())]].tolist()
-        donors = self.donor_rng.sample(sorted(set(self.train_loader.dataset.ids)-set(candidates)),replacements)
+        valid_donors = set(self.train_loader.dataset.ids)-set(candidates)
+        filtered_pool = (sorted(set(self.choice.get('donor_pool') or ()) & valid_donors)
+                         if self.method == 'auto_vote' else [])
+        donor_source = filtered_pool if len(filtered_pool) >= replacements else sorted(valid_donors)
+        donors = self.donor_rng.sample(donor_source,replacements)
         self.current_plan = dict(zip(recipients,donors))
         self.label_overrides = {}
         self._apply_attack()
