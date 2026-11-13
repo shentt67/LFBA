@@ -26,7 +26,7 @@ class LocalModelForCifar10(nn.Module):
     def __init__(self, args):
         super(LocalModelForCifar10, self).__init__()
         self.args = args
-        self.backbone = models.resnet18(pretrained=False)
+        self.backbone = models.resnet18(weights=None)
         num_ftrs = self.backbone.fc.in_features
         if self.args.client_num == 2:
             self.backbone.fc = nn.Linear(num_ftrs, 128)
@@ -40,7 +40,7 @@ class SingleModelForCifar10(nn.Module):
     def __init__(self, args):
         super(SingleModelForCifar10, self).__init__()
         self.args = args
-        self.backbone = models.resnet18(pretrained=False)
+        self.backbone = models.resnet18(weights=None)
         num_ftrs = self.backbone.fc.in_features
         self.backbone.fc = nn.Linear(num_ftrs, 10)
 

@@ -1,261 +1,223 @@
-import argparse
+"""Reproducible two-party LFBA experiment entry point."""
 import copy
-from datetime import datetime
+import json
 import logging
+import os
+from pathlib import Path
+import time
+from types import SimpleNamespace
 
-import math
-import torch.nn as nn
-import torchvision.transforms as transforms
-from dataset.dataset import CIFAR10_VFL, UCIHAR_VFL, PHISHING_VFL, NUSWIDE_VFL
+import numpy as np
+import torch
+from torch import nn
+from torch.utils.data import DataLoader
+
+from dataset.experiment import build_datasets
 from models.CIFAR10_models import GlobalModelForCifar10, LocalModelForCifar10
 from models.UCIHAR_models import GlobalModelForUCIHAR, LocalModelForUCIHAR
-from models.NUSWIDE_models import GlobalModelForNUSWIDE, LocalModelForNUSWIDE
 from models.PHISHING_models import GlobalModelForPHISHING, LocalModelForPHISHING
+from models.NUSWIDE_models import GlobalModelForNUSWIDE, LocalModelForNUSWIDE
+from utils.checkpoint import VERSION, load_checkpoint, cpu_tree
+from utils.artifacts import save_configuration, save_experiment_data, verify_saved_result, cleanup_runtime
+from lfba_comparison.common import batch_lock, write_json, digest
+from utils.config import parse_args, validate_args
 from utils.trainer import Trainer
-from attack.attack import attack_lra, attack_rsa
-from utils.trigger_visualization import trigger_visualization
-from utils.utils import *
+from utils.utils import set_seed
+
+
+def resolve_checkpoint(args):
+    path=args.pretrained_checkpoint or args.test_checkpoint
+    if not path:
+        return validate_args(args),None
+    checkpoint=load_checkpoint(path)
+    if checkpoint.get('format_version')!=VERSION:
+        if args.pretrained_checkpoint:
+            raise ValueError('Legacy checkpoint cannot be strictly resumed')
+        supplied=set(args._provided)
+        if not {'dataset','target_label'}.issubset(supplied):
+            raise ValueError('Legacy evaluation requires explicit --dataset and --target_label')
+        if args.dataset not in ('CIFAR10',) and args.trigger_dimensions is None:
+            raise ValueError('Legacy table-data evaluation requires --trigger_dimensions')
+        return validate_args(args),checkpoint
+    if args.pretrained_checkpoint and checkpoint.get('evaluation_only'):
+        raise ValueError('This reconstructed best checkpoint is evaluation-only; resume from last_checkpoint')
+    supplied=set(args._provided)
+    allowed={'device','results_dir','epoch','pretrained_checkpoint','test_checkpoint'}
+    saved=checkpoint['config']
+    for key in supplied-allowed:
+        value=getattr(args,key)
+        if key=='dataset' and value=='NUSWIDET':
+            value='NUSWIDE'
+        if key=='data_dir':
+            value=str(Path(value).resolve())
+        if value!=saved.get(key):
+            raise ValueError('Checkpoint configuration conflicts with --'+key)
+    merged=dict(saved)
+    for key in allowed:
+        if key in supplied or key in ('results_dir','pretrained_checkpoint','test_checkpoint'):
+            merged[key]=getattr(args,key)
+    merged['_provided']=args._provided
+    merged['start_epoch']=checkpoint['epoch'] if args.pretrained_checkpoint else 0
+    args=validate_args(SimpleNamespace(**merged))
+    if args.pretrained_checkpoint and args.epoch<=checkpoint['epoch']:
+        raise ValueError('Resume epoch must exceed the number of completed epochs')
+    return args,checkpoint
+
+
+def build_models(args):
+    pairs={'CIFAR10':(GlobalModelForCifar10,LocalModelForCifar10),
+           'UCIHAR':(GlobalModelForUCIHAR,LocalModelForUCIHAR),
+           'PHISHING':(GlobalModelForPHISHING,LocalModelForPHISHING),
+           'NUSWIDE':(GlobalModelForNUSWIDE,LocalModelForNUSWIDE)}
+    global_class,local_class=pairs[args.dataset]
+    local=[local_class(args) if args.dataset=='CIFAR10' else local_class(args,i) for i in range(2)]
+    return [global_class(args),*local]
+
+
+def triggered_view(view,args,dimensions):
+    triggered=copy.copy(view)
+    triggered.base=copy.copy(view.base)
+    triggered.set_attack({i:None for i in view.ids},args,dimensions)
+    return triggered
+
+
+def trigger_dimensions(args,checkpoint):
+    if args.dataset=='CIFAR10':
+        return []
+    start,end={'PHISHING':(15,30),'UCIHAR':(281,561),'NUSWIDE':(634,1634)}[args.dataset]
+    if checkpoint and checkpoint.get('format_version')==VERSION:
+        dims=list(checkpoint['trigger_dimensions'])
+    elif args.trigger_dimensions is not None:
+        dims=list(args.trigger_dimensions)
+    else:
+        if args.poison_dimensions>end-start:
+            raise ValueError('poison_dimensions exceeds attacker feature count')
+        dims=np.random.choice(np.arange(start,end),args.poison_dimensions,replace=False).tolist()
+    if len(dims)==0 or len(set(dims))!=len(dims) or any(not start<=i<end for i in dims):
+        raise ValueError('trigger_dimensions must be unique attacker-side feature indices')
+    return dims
+
+
+def validate_data(args,train,val,test):
+    classes={'CIFAR10':10,'UCIHAR':6,'PHISHING':2,'NUSWIDE':5}[args.dataset]
+    if not 0<=args.target_label<classes:
+        raise ValueError('target_label is outside the dataset class range')
+    for name,view in (('train',train),('val',val),('test',test)):
+        if not len(view):
+            raise ValueError('Empty '+name+' split')
+        labels=np.asarray(view.targets)[np.asarray(view.ids)-view.offset]
+        if not np.isfinite(labels).all() or not np.equal(labels,labels.astype(np.int64)).all() or np.any((labels<0)|(labels>=classes)):
+            raise ValueError('Invalid labels in '+name+' split')
+    if args.attack=='LFBA' and not args.test_checkpoint:
+        count=int(len(train)*args.poison_rate)
+        if count<1:
+            raise ValueError('poison_rate selects no LFBA samples')
+        selected=int(count*args.select_rate)
+        if not args.poison_all and (selected<1 or selected>len(train)-count):
+            raise ValueError('LFBA replacement needs selected samples and enough clean donors')
+        if args.anchor_idx not in train.ids:
+            raise ValueError('anchor_idx must belong to training split')
 
 
 def main(args):
-    device = torch.device("cuda:" + str(args.device) if torch.cuda.is_available() else "cpu")
+    args,checkpoint=resolve_checkpoint(args)
+    with batch_lock(Path(args.results_dir)):
+        return _run_experiment(args,checkpoint)
 
-    # create logger
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.DEBUG)
-    logger.setLevel(level=logging.DEBUG)
 
-    # create handler for writing logs
-    if not os.path.isdir(args.results_dir):
-        os.mkdir(args.results_dir)
-    fh = logging.FileHandler(args.results_dir + '/experiment.log')
-
-    # add handler
-    logger.addHandler(fh)
-
-    # params
-    logger.info(args)
-
-    # create dataset
-    logger.info("=> Preparing Data...")
-    if args.dataset == 'CIFAR10':
-        # data transform
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-
-        transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        # return data, label, index
-        train_data = CIFAR10_VFL(root=args.data_dir, train=True, download=True, transform=transform_train)
-        test_data = CIFAR10_VFL(root=args.data_dir, train=False, download=True, transform=transform_test)
-        test_data_asr = copy.deepcopy(test_data)
-    elif args.dataset == 'UCIHAR':
-        # return data, label, index
-        train_data = UCIHAR_VFL(root=args.data_dir, train=True, transforms=None)
-        test_data = UCIHAR_VFL(root=args.data_dir, train=False, transforms=None)
-        test_data_asr = copy.deepcopy(test_data)
-    elif args.dataset == 'PHISHING':
-        # return data, label, index
-        train_data = PHISHING_VFL(root=args.data_dir, train=True, transforms=None)
-        test_data = PHISHING_VFL(root=args.data_dir, train=False, transforms=None)
-        test_data_asr = copy.deepcopy(test_data)
-    elif args.dataset == 'NUSWIDE':
-        # return data, label, index
-        selected_labels = ['buildings', 'grass', 'animal', 'water', 'person']
-        train_data = NUSWIDE_VFL(root=args.data_dir, selected_labels=selected_labels, train=True, transforms=None)
-        test_data = NUSWIDE_VFL(root=args.data_dir, selected_labels=selected_labels, train=False, transforms=None)
-        test_data_asr = copy.deepcopy(test_data)
-    else:
-        raise_dataset_exception()
-
-    if args.trigger_visualization:
-        trigger_visualization(logger, args, train_data, test_data)
-        return
-
-    # build vfl models
-    if args.dataset == 'CIFAR10':
-        model_list = []
-        extractor_list = []
-        model_list.append(GlobalModelForCifar10(args))
-        extractor_list.append(GlobalModelForCifar10(args))
-        for i in range(args.client_num):
-            model_list.append(LocalModelForCifar10(args))
-            extractor_list.append(LocalModelForCifar10(args))
-        optimizer_list = [torch.optim.Adam(model.parameters(), lr=args.lr) for model in model_list]
-        criterion = nn.CrossEntropyLoss().to(device)
-    elif args.dataset == 'UCIHAR':
-        model_list = []
-        extractor_list = []
-        model_list.append(GlobalModelForUCIHAR(args))
-        extractor_list.append(GlobalModelForUCIHAR(args))
-        for i in range(args.client_num):
-            model_list.append(LocalModelForUCIHAR(args, i))
-            extractor_list.append(LocalModelForUCIHAR(args, i))
-        optimizer_list = [torch.optim.Adam(model.parameters(), lr=args.lr) for model in model_list]
-        criterion = nn.CrossEntropyLoss().to(device)
-    elif args.dataset == 'PHISHING':
-        model_list = []
-        extractor_list = []
-        model_list.append(GlobalModelForPHISHING(args))
-        extractor_list.append(GlobalModelForPHISHING(args))
-        for i in range(args.client_num):
-            model_list.append(LocalModelForPHISHING(args, i))
-            extractor_list.append(LocalModelForPHISHING(args, i))
-        optimizer_list = [torch.optim.Adam(model.parameters(), lr=args.lr) for model in model_list]
-        criterion = nn.CrossEntropyLoss().to(device)
-    elif args.dataset == 'NUSWIDE':
-        model_list = []
-        extractor_list = []
-        model_list.append(GlobalModelForNUSWIDE(args))
-        extractor_list.append(GlobalModelForNUSWIDE(args))
-        for i in range(args.client_num):
-            model_list.append(LocalModelForNUSWIDE(args, i))
-            extractor_list.append(LocalModelForNUSWIDE(args, i))
-        optimizer_list = [torch.optim.Adam(model.parameters(), lr=args.lr) for model in model_list]
-        criterion = nn.CrossEntropyLoss().to(device)
-    else:
-        raise_dataset_exception()
-    model_list = [model.to(device) for model in model_list]
-    extractor_list = [model.to(device) for model in extractor_list]
-    # test
-    if args.test_checkpoint:
-        if os.path.isfile(args.test_checkpoint):
-            logger.info("=> loading test checkpoint '{}'".format(args.test_checkpoint))
-            checkpoint_test = torch.load(args.test_checkpoint, map_location=device)
-            for i in range(len(model_list)):
-                model_list[i].load_state_dict(checkpoint_test['state_dict'][i])
-                optimizer_list[i].load_state_dict(checkpoint_test['optimizer'][i])
-            logger.info("=> loaded test checkpoint '{}' (epoch {}, best accuracy: {:.4f})"
-                        .format(args.test_checkpoint, checkpoint_test['epoch'], checkpoint_test['best_acc']))
+def _run_experiment(args,checkpoint):
+    args.data_dir=str(Path(args.data_dir).resolve())
+    output=Path(args.results_dir)
+    # Never overwrite historical or completed experiment outputs accidentally.
+    if output.exists() and any((output/name).exists() for name in ('experiment.log','config.json','metrics.json')):
+        raise FileExistsError('Experiment output is already occupied: '+str(output))
+    output.mkdir(parents=True,exist_ok=True)
+    logger=logging.getLogger('lfba')
+    logger.setLevel(logging.INFO)
+    logger.propagate=False
+    handler=logging.FileHandler(output/'experiment.log',encoding='utf-8')
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+    stream=logging.StreamHandler()
+    stream.setFormatter(logging.Formatter('%(message)s'))
+    logger.addHandler(handler)
+    logger.addHandler(stream)
+    try:
+        started=time.perf_counter()
+        set_seed(args.seed)
+        torch.set_num_threads(min(4,os.cpu_count() or 1))
+        device=torch.device('cuda:'+str(args.device) if args.device>=0 and torch.cuda.is_available() else 'cpu')
+        if device.type=='cuda':
+            torch.cuda.set_device(device)
+            torch.cuda.reset_peak_memory_stats(device)
+        data_state=checkpoint.get('data_state') if checkpoint and checkpoint.get('format_version')==VERSION else None
+        train,val,test,data_state=build_datasets(args,data_state)
+        if args.attack=='LFBA' and not args.test_checkpoint:
+            if args.anchor_idx not in train.ids:
+                raise ValueError('anchor_idx is not in training split')
+            args.target_label=int(train.targets[args.anchor_idx])
+        validate_data(args,train,val,test)
+        dims=trigger_dimensions(args,checkpoint)
+        args.trigger_dimensions=dims
+        val_asr=triggered_view(val,args,dims)
+        test_asr=triggered_view(test,args,dims)
+        datasets=dict(train=train,val=val,val_asr=val_asr,test=test,test_asr=test_asr)
+        loaders={name:DataLoader(data,batch_size=args.batch_size,shuffle=name=='train',num_workers=0,
+                    generator=torch.Generator().manual_seed(args.seed+index+1))
+                 for index,(name,data) in enumerate(datasets.items())}
+        models=[model.to(device) for model in build_models(args)]
+        opts=[torch.optim.Adam(model.parameters(),lr=args.lr) for model in models]
+        trainer=Trainer(device,models,[],None,opts,nn.CrossEntropyLoss(),loaders['train'],
+                        loaders['test'],loaders['test_asr'],dims,logger,args,
+                        checkpoint if args.pretrained_checkpoint else None,
+                        loaders['val'],loaders['val_asr'],data_state)
+        save_configuration(output,trainer)
+        logger.info('Configuration: %s',json.dumps(vars(args)))
+        logger.info('Split sizes train=%d validation=%d test=%d',len(train),len(val),len(test))
+        if args.test_checkpoint:
+            if len(checkpoint['state_dict'])!=len(models):
+                raise ValueError('Checkpoint model count differs from this experiment')
+            for model,state in zip(models,checkpoint['state_dict']):
+                model.load_state_dict(state)
+            evaluated_epoch=checkpoint['epoch']
+            best_epoch=checkpoint.get('best_epoch',evaluated_epoch)
+            validation=next((row['validation'] for row in checkpoint.get('history',[])
+                             if row['epoch']==evaluated_epoch),None)
         else:
-            logger.info("=> no test checkpoint found at '{}'".format(args.test_checkpoint))
-    # train from checkpoints
-    checkpoint = None
-    if args.pretrained_checkpoint:
-        if os.path.isfile(args.pretrained_checkpoint):
-            logger.info("=> loading checkpoint '{}'".format(args.pretrained_checkpoint))
-            checkpoint = torch.load(args.pretrained_checkpoint, map_location=device)
-            args.start_epoch = checkpoint['epoch']
-            for i in range(len(model_list)):
-                model_list[i].load_state_dict(checkpoint['state_dict'][i])
-                optimizer_list[i].load_state_dict(checkpoint['optimizer'][i])
-            logger.info("=> loaded checkpoint '{}' (epoch {}, best accuracy: {:.4f})"
-                        .format(args.pretrained_checkpoint, checkpoint['epoch'], checkpoint['best_acc']))
-        else:
-            logger.info("=> no checkpoint found at '{}'".format(args.pretrained_checkpoint))
-    # load feature extractor
-    if args.feature_extractor:
-        if os.path.isfile(args.feature_extractor):
-            logger.info("=> loading checkpoint '{}'".format(args.feature_extractor))
-            extractor_checkpoint = torch.load(args.feature_extractor, map_location=device)
-            for i in range(len(extractor_list)):
-                extractor_list[i].load_state_dict(extractor_checkpoint['state_dict'][i])
-            logger.info("=> loaded checkpoint '{}' (epoch {}, best accuracy: {:.4f})"
-                        .format(args.feature_extractor, extractor_checkpoint['epoch'],
-                                extractor_checkpoint['best_acc']))
-        else:
-            logger.info("=> no checkpoint found at '{}'".format(args.feature_extractor))
+            trainer.train()
+            if trainer.best_state_dict is None:
+                raise ValueError('No defined validation score; cannot select a best model')
+            for model,state in zip(models,trainer.best_state_dict):
+                model.load_state_dict(state)
+            best_epoch=trainer.best_epoch
+            evaluated_epoch=best_epoch
+            validation=trainer.best_metrics
 
-    if args.dataset == 'CIFAR10':
-        trigger_dimensions = []
-        pass
-    elif args.dataset == 'UCIHAR':
-        ranges = range(math.ceil(train_data.data.shape[1] / args.client_num),
-                       train_data.data.shape[1])
-        trigger_dimensions = np.random.choice(ranges, args.poison_dimensions, replace=False)
-    elif args.dataset == 'PHISHING':
-        ranges = range(15, 30)
-        trigger_dimensions = np.random.choice(ranges, args.poison_dimensions, replace=False)
-    elif args.dataset == 'NUSWIDE':
-        ranges = range(634, 1634)
-        trigger_dimensions = np.random.choice(ranges, args.poison_dimensions, replace=False)
-    else:
-        raise_dataset_exception()
-
-    if args.attack is None:
-        test_data_asr.data = attack_rsa(args, logger, test_data_asr.data, trigger_dimensions, 1, 'test')
-    elif args.attack == 'rsa':
-        train_data.data = attack_rsa(args, logger, train_data.data, trigger_dimensions, args.poison_rate, 'train')
-        test_data_asr.data = attack_rsa(args, logger, test_data_asr.data, trigger_dimensions, 1, 'test')
-    elif args.attack == 'lra':
-        train_data.data, train_data.targets = attack_lra(args, logger, train_data.data, trigger_dimensions,
-                                                         train_data.targets,
-                                                         args.poison_rate, 'train')
-        test_data_asr.data, _ = attack_lra(args, logger, test_data_asr.data, trigger_dimensions, test_data_asr.targets,
-                                           1, 'test')
-    elif args.attack == 'LFBA':
-        test_data_asr.data = attack_rsa(args, logger, test_data_asr.data, trigger_dimensions, 1, 'test')
-    else:
-        raise_attack_exception()
-
-    train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=args.batch_size, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=args.batch_size, shuffle=True)
-    test_asr_loader = torch.utils.data.DataLoader(dataset=test_data_asr, batch_size=args.batch_size, shuffle=True)
-    trainer = Trainer(device, model_list, extractor_list, extractor_list[args.attack_client_num + 1], optimizer_list,
-                      criterion, train_loader, test_loader,
-                      test_asr_loader, trigger_dimensions, logger, args,
-                      checkpoint)
-    if args.test_checkpoint:
-        if args.do_tsne:
-            train_data_add_trigger = copy.deepcopy(train_data)
-            train_data_add_trigger.data = attack_rsa(args, logger, train_data_add_trigger.data, trigger_dimensions, 1,
-                                                     'test')
-            tsne_loader = torch.utils.data.DataLoader(dataset=train_data_add_trigger,
-                                                      batch_size=train_data_add_trigger.data.shape[0])
-            trainer.perform_tsne(tsne_loader)
-            return
-        else:
-            trainer.test(0)
-        return
-    trainer.train()
+        metrics=trainer.test(evaluated_epoch-1)
+        evaluation_state=cpu_tree([m.state_dict() for m in models])
+        independent_models=[model.to(device) for model in build_models(args)]
+        for model,state in zip(independent_models,evaluation_state):
+            model.load_state_dict(state)
+        evaluator=copy.copy(trainer)
+        evaluator.model_list=independent_models
+        independent=evaluator.test(evaluated_epoch-1)
+        if independent!=metrics:
+            raise ValueError('Independent evaluation differs')
+        save_experiment_data(output,trainer)
+        result=dict(best_epoch=best_epoch,checkpoint_epoch=evaluated_epoch,validation=validation,test=metrics,
+                    elapsed_seconds=time.perf_counter()-started,
+                    peak_cuda_memory_bytes=torch.cuda.max_memory_allocated(device) if device.type=='cuda' else 0,
+                    status='complete',independent_evaluation=dict(epoch=evaluated_epoch,test=independent,
+                    final_model_digest=digest(evaluation_state)))
+        write_json(output/'metrics.json',result)
+        verify_saved_result(output,result,trainer)
+        cleanup_runtime(output)
+        logger.info('Final result: %s',json.dumps(result))
+        return result
+    finally:
+        for active in (handler,stream):
+            logger.removeHandler(active)
+            active.close()
 
 
-if __name__ == '__main__':
-    currentDateAndTime = datetime.now()
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--data_dir', default='/data/data_raw/', help='data directory')
-    parser.add_argument('--dataset', default='NUSWIDE', help='name of dataset')
-    parser.add_argument('--device', default=0, type=int, help='GPU number')
-    parser.add_argument('--results_dir', default='/data/data_raw/vfl_baseline/logs/' + str(currentDateAndTime),
-                        help='the result directory')
-    parser.add_argument('--seed', default=100, type=int, help='the seed')
-    parser.add_argument('--epoch', default=100, type=int, help='number of training epoch')
-    parser.add_argument('--batch_size', default=256, type=int, help='the batch size')
-    parser.add_argument('--client_num', default=2, type=int, help='the number of clients')
-    parser.add_argument('--pretrained_checkpoint', default=None, help='the checkpoint file')
-    parser.add_argument('--lr', default=0.001, type=float, help='the learning rate')
-    parser.add_argument('--start_epoch', default=0, type=int, help='the epoch number of starting training')
-    parser.add_argument('--print_steps', default=10, type=int, help='the print step of training logging')
-    parser.add_argument('--early_stop', default=20, type=int, help='the early stop epoch')
-    parser.add_argument('--attack', default=None,
-                        help='attack method')  # None: baseline, lba: label-based attack, nla: no-label attack
-    parser.add_argument('--target_label', default=3, type=int, help='the target label for backdoor')
-    parser.add_argument('--poison_rate', default=0.1, type=float, help='the rate of poison samples')
-    parser.add_argument('--trigger_visualization', default=False, type=bool, help='visualize the trigger')
-    parser.add_argument('--poison_dimensions', default=5, type=int, help='the dimensions to be poisoned')
-    parser.add_argument('--trigger_feature_clip', default=1, type=float, help='the clip ratio of feature trigger')
-    parser.add_argument('--attack_client_num', default=1, type=int, help='the adversary client')
-    parser.add_argument('--num_clusters', default=10, type=int, help='the number of clusters')
-    parser.add_argument('--feature_extractor', default='', help='the feature extractor path')
-    parser.add_argument('--select_rate', default=1, type=float)
-    parser.add_argument('--random_select', action='store_true')
-    parser.add_argument('--select_replace', action='store_true')
-    parser.add_argument('--poison_all', action='store_true')
-    parser.add_argument('--anchor_idx', default=33930, type=int)
-    parser.add_argument('--test_checkpoint', default=None)
-
-    args = parser.parse_args()
-
-    args.results_dir = '/data/data_sw/vfl_baseline/logs/' + args.dataset + '/' + str(currentDateAndTime)
-
-    # set seed
-    set_seed(args.seed)
-
-    main(args)
+if __name__=='__main__':
+    main(parse_args())

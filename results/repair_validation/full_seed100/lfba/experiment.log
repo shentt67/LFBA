@@ -1,0 +1,145 @@
+2026-10-29 13:35:30,399 - Configuration: {"data_dir": "D:\\MyHomework\\2026_2\\LFBA\\second\\LFBA\\data", "dataset": "CIFAR10", "results_dir": "results\\repair_validation\\full_seed100\\lfba", "pretrained_checkpoint": null, "test_checkpoint": null, "feature_extractor": "", "device": 0, "seed": 100, "epoch": 20, "batch_size": 128, "client_num": 2, "start_epoch": 0, "print_steps": 100, "early_stop": 0, "pretrain_stage": 0, "target_label": 6, "poison_dimensions": 5, "attack_client_num": 1, "num_clusters": 10, "anchor_idx": 23470, "train_limit": null, "eval_limit": null, "lr": 0.001, "poison_rate": 0.1, "select_rate": 0.5, "trigger_feature_clip": 1.0, "validation_rate": 0.1, "random_select": false, "select_replace": false, "poison_all": false, "trigger_visualization": false, "attack": "LFBA", "similarity": "legacy_l1", "trigger_dimensions": [], "_provided": ["anchor_idx", "attack", "batch_size", "data_dir", "dataset", "device", "early_stop", "epoch", "lr", "poison_rate", "print_steps", "results_dir", "seed", "select_rate", "similarity", "target_label"]}
+2026-10-29 13:35:30,399 - Split sizes train=45000 validation=5000 test=10000
+2026-10-29 13:35:30,829 - Epoch 1 batch 1/352 loss 2.3077 train_acc 0.1172
+2026-10-29 13:35:44,545 - Epoch 1 batch 101/352 loss 1.8176 train_acc 0.3283
+2026-10-29 13:35:58,154 - Epoch 1 batch 201/352 loss 1.7235 train_acc 0.3617
+2026-10-29 13:36:11,942 - Epoch 1 batch 301/352 loss 1.6587 train_acc 0.3884
+2026-10-29 13:36:22,624 - val epoch 1 metrics: {"acc": 0.4728, "poison_acc": 0.4736, "asr": 0.07111111111111111, "target_acc": 0.636, "loss": 1.3965319038391113, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:36:23,443 - End epoch 1 val={"acc": 0.4728, "poison_acc": 0.4736, "asr": 0.07111111111111111, "target_acc": 0.636, "loss": 1.3965319038391113, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=1 score=0.27195555555555556 seconds=53.04
+2026-10-29 13:36:23,511 - Constructed poison set: 4500; target label: 6
+2026-10-29 13:36:23,984 - Epoch 2 attack recipients: 2250
+2026-10-29 13:36:24,397 - Epoch 2 batch 1/352 loss 1.4093 train_acc 0.4141
+2026-10-29 13:36:36,265 - Epoch 2 batch 101/352 loss 1.4465 train_acc 0.4661
+2026-10-29 13:36:47,096 - Epoch 2 batch 201/352 loss 1.3843 train_acc 0.4912
+2026-10-29 13:36:58,056 - Epoch 2 batch 301/352 loss 1.3376 train_acc 0.5083
+2026-10-29 13:37:07,675 - val epoch 2 metrics: {"acc": 0.5042, "poison_acc": 0.1034, "asr": 0.9951111111111111, "target_acc": 0.516, "loss": 1.3856688865661622, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:37:10,082 - End epoch 2 val={"acc": 0.5042, "poison_acc": 0.1034, "asr": 0.9951111111111111, "target_acc": 0.516, "loss": 1.3856688865661622, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=2 score=0.7496555555555555 seconds=46.64
+2026-10-29 13:37:10,598 - Epoch 3 attack recipients: 2250
+2026-10-29 13:37:11,002 - Epoch 3 batch 1/352 loss 1.1862 train_acc 0.5547
+2026-10-29 13:37:24,731 - Epoch 3 batch 101/352 loss 1.2064 train_acc 0.5592
+2026-10-29 13:37:38,409 - Epoch 3 batch 201/352 loss 1.2016 train_acc 0.5635
+2026-10-29 13:37:51,980 - Epoch 3 batch 301/352 loss 1.1866 train_acc 0.5700
+2026-10-29 13:38:03,315 - val epoch 3 metrics: {"acc": 0.6092, "poison_acc": 0.1332, "asr": 0.9091111111111111, "target_acc": 0.638, "loss": 1.0909908670425414, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:38:06,850 - End epoch 3 val={"acc": 0.6092, "poison_acc": 0.1332, "asr": 0.9091111111111111, "target_acc": 0.638, "loss": 1.0909908670425414, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=3 score=0.7591555555555556 seconds=56.77
+2026-10-29 13:38:07,488 - Epoch 4 attack recipients: 2250
+2026-10-29 13:38:07,764 - Epoch 4 batch 1/352 loss 1.1654 train_acc 0.6250
+2026-10-29 13:38:21,168 - Epoch 4 batch 101/352 loss 1.1069 train_acc 0.6042
+2026-10-29 13:38:33,232 - Epoch 4 batch 201/352 loss 1.0955 train_acc 0.6074
+2026-10-29 13:38:44,379 - Epoch 4 batch 301/352 loss 1.0818 train_acc 0.6121
+2026-10-29 13:38:53,530 - val epoch 4 metrics: {"acc": 0.6174, "poison_acc": 0.141, "asr": 0.8188888888888889, "target_acc": 0.548, "loss": 1.1007743022918701, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:38:56,486 - End epoch 4 val={"acc": 0.6174, "poison_acc": 0.141, "asr": 0.8188888888888889, "target_acc": 0.548, "loss": 1.1007743022918701, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=3 score=0.7591555555555556 seconds=49.64
+2026-10-29 13:38:56,943 - Epoch 5 attack recipients: 2250
+2026-10-29 13:38:57,369 - Epoch 5 batch 1/352 loss 1.0868 train_acc 0.5781
+2026-10-29 13:39:09,709 - Epoch 5 batch 101/352 loss 1.0210 train_acc 0.6341
+2026-10-29 13:39:21,414 - Epoch 5 batch 201/352 loss 1.0088 train_acc 0.6382
+2026-10-29 13:39:32,584 - Epoch 5 batch 301/352 loss 1.0037 train_acc 0.6408
+2026-10-29 13:39:41,791 - val epoch 5 metrics: {"acc": 0.6564, "poison_acc": 0.1292, "asr": 0.9037777777777778, "target_acc": 0.588, "loss": 0.9577332029342651, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:39:44,122 - End epoch 5 val={"acc": 0.6564, "poison_acc": 0.1292, "asr": 0.9037777777777778, "target_acc": 0.588, "loss": 0.9577332029342651, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=5 score=0.7800888888888888 seconds=47.64
+2026-10-29 13:39:44,550 - Epoch 6 attack recipients: 2250
+2026-10-29 13:39:44,953 - Epoch 6 batch 1/352 loss 0.9034 train_acc 0.6641
+2026-10-29 13:39:57,300 - Epoch 6 batch 101/352 loss 0.9514 train_acc 0.6628
+2026-10-29 13:40:10,721 - Epoch 6 batch 201/352 loss 0.9546 train_acc 0.6604
+2026-10-29 13:40:24,176 - Epoch 6 batch 301/352 loss 0.9526 train_acc 0.6624
+2026-10-29 13:40:34,321 - val epoch 6 metrics: {"acc": 0.6662, "poison_acc": 0.1486, "asr": 0.8551111111111112, "target_acc": 0.588, "loss": 0.9487284345626831, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:40:34,775 - End epoch 6 val={"acc": 0.6662, "poison_acc": 0.1486, "asr": 0.8551111111111112, "target_acc": 0.588, "loss": 0.9487284345626831, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=5 score=0.7800888888888888 seconds=50.65
+2026-10-29 13:40:35,175 - Epoch 7 attack recipients: 2250
+2026-10-29 13:40:35,454 - Epoch 7 batch 1/352 loss 1.0422 train_acc 0.6094
+2026-10-29 13:40:47,593 - Epoch 7 batch 101/352 loss 0.9043 train_acc 0.6778
+2026-10-29 13:40:58,562 - Epoch 7 batch 201/352 loss 0.9087 train_acc 0.6774
+2026-10-29 13:41:09,547 - Epoch 7 batch 301/352 loss 0.9016 train_acc 0.6807
+2026-10-29 13:41:18,945 - val epoch 7 metrics: {"acc": 0.6522, "poison_acc": 0.1196, "asr": 0.9355555555555556, "target_acc": 0.44, "loss": 0.9672654682159424, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:41:20,005 - End epoch 7 val={"acc": 0.6522, "poison_acc": 0.1196, "asr": 0.9355555555555556, "target_acc": 0.44, "loss": 0.9672654682159424, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=7 score=0.7938777777777778 seconds=45.23
+2026-10-29 13:41:20,429 - Epoch 8 attack recipients: 2250
+2026-10-29 13:41:20,698 - Epoch 8 batch 1/352 loss 0.7936 train_acc 0.7344
+2026-10-29 13:41:32,724 - Epoch 8 batch 101/352 loss 0.8734 train_acc 0.6936
+2026-10-29 13:41:44,754 - Epoch 8 batch 201/352 loss 0.8651 train_acc 0.6960
+2026-10-29 13:41:55,912 - Epoch 8 batch 301/352 loss 0.8597 train_acc 0.6972
+2026-10-29 13:42:05,102 - val epoch 8 metrics: {"acc": 0.6988, "poison_acc": 0.153, "asr": 0.792, "target_acc": 0.76, "loss": 0.8388192420959473, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:42:06,192 - End epoch 8 val={"acc": 0.6988, "poison_acc": 0.153, "asr": 0.792, "target_acc": 0.76, "loss": 0.8388192420959473, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=7 score=0.7938777777777778 seconds=46.19
+2026-10-29 13:42:06,603 - Epoch 9 attack recipients: 2250
+2026-10-29 13:42:06,880 - Epoch 9 batch 1/352 loss 0.8555 train_acc 0.7500
+2026-10-29 13:42:19,549 - Epoch 9 batch 101/352 loss 0.8115 train_acc 0.7120
+2026-10-29 13:42:32,010 - Epoch 9 batch 201/352 loss 0.8227 train_acc 0.7104
+2026-10-29 13:42:43,570 - Epoch 9 batch 301/352 loss 0.8277 train_acc 0.7087
+2026-10-29 13:42:52,707 - val epoch 9 metrics: {"acc": 0.7102, "poison_acc": 0.1428, "asr": 0.9124444444444444, "target_acc": 0.734, "loss": 0.8288893684387207, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:42:56,019 - End epoch 9 val={"acc": 0.7102, "poison_acc": 0.1428, "asr": 0.9124444444444444, "target_acc": 0.734, "loss": 0.8288893684387207, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=9 score=0.8113222222222223 seconds=49.83
+2026-10-29 13:42:56,443 - Epoch 10 attack recipients: 2250
+2026-10-29 13:42:56,876 - Epoch 10 batch 1/352 loss 0.9020 train_acc 0.6953
+2026-10-29 13:43:08,934 - Epoch 10 batch 101/352 loss 0.8125 train_acc 0.7137
+2026-10-29 13:43:20,992 - Epoch 10 batch 201/352 loss 0.7942 train_acc 0.7194
+2026-10-29 13:43:32,155 - Epoch 10 batch 301/352 loss 0.7930 train_acc 0.7215
+2026-10-29 13:43:41,428 - val epoch 10 metrics: {"acc": 0.7172, "poison_acc": 0.1128, "asr": 0.9666666666666667, "target_acc": 0.718, "loss": 0.8085131729125976, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:43:44,862 - End epoch 10 val={"acc": 0.7172, "poison_acc": 0.1128, "asr": 0.9666666666666667, "target_acc": 0.718, "loss": 0.8085131729125976, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=10 score=0.8419333333333333 seconds=48.84
+2026-10-29 13:43:45,282 - Epoch 11 attack recipients: 2250
+2026-10-29 13:43:45,659 - Epoch 11 batch 1/352 loss 0.7175 train_acc 0.7812
+2026-10-29 13:43:57,820 - Epoch 11 batch 101/352 loss 0.7661 train_acc 0.7309
+2026-10-29 13:44:09,778 - Epoch 11 batch 201/352 loss 0.7713 train_acc 0.7302
+2026-10-29 13:44:21,799 - Epoch 11 batch 301/352 loss 0.7697 train_acc 0.7302
+2026-10-29 13:44:30,622 - val epoch 11 metrics: {"acc": 0.7172, "poison_acc": 0.11, "asr": 0.9782222222222222, "target_acc": 0.72, "loss": 0.8079451156616211, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:44:31,425 - End epoch 11 val={"acc": 0.7172, "poison_acc": 0.11, "asr": 0.9782222222222222, "target_acc": 0.72, "loss": 0.8079451156616211, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=11 score=0.8477111111111111 seconds=46.56
+2026-10-29 13:44:31,802 - Epoch 12 attack recipients: 2250
+2026-10-29 13:44:32,053 - Epoch 12 batch 1/352 loss 0.7895 train_acc 0.7188
+2026-10-29 13:44:44,496 - Epoch 12 batch 101/352 loss 0.7460 train_acc 0.7339
+2026-10-29 13:44:56,940 - Epoch 12 batch 201/352 loss 0.7503 train_acc 0.7353
+2026-10-29 13:45:09,267 - Epoch 12 batch 301/352 loss 0.7457 train_acc 0.7372
+2026-10-29 13:45:19,204 - val epoch 12 metrics: {"acc": 0.7168, "poison_acc": 0.1276, "asr": 0.9562222222222222, "target_acc": 0.7, "loss": 0.8308019912719726, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:45:19,598 - End epoch 12 val={"acc": 0.7168, "poison_acc": 0.1276, "asr": 0.9562222222222222, "target_acc": 0.7, "loss": 0.8308019912719726, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=11 score=0.8477111111111111 seconds=48.17
+2026-10-29 13:45:19,987 - Epoch 13 attack recipients: 2250
+2026-10-29 13:45:20,231 - Epoch 13 batch 1/352 loss 0.6265 train_acc 0.8125
+2026-10-29 13:45:31,562 - Epoch 13 batch 101/352 loss 0.7126 train_acc 0.7506
+2026-10-29 13:45:42,718 - Epoch 13 batch 201/352 loss 0.7197 train_acc 0.7485
+2026-10-29 13:45:53,863 - Epoch 13 batch 301/352 loss 0.7168 train_acc 0.7502
+2026-10-29 13:46:03,452 - val epoch 13 metrics: {"acc": 0.7372, "poison_acc": 0.1696, "asr": 0.8813333333333333, "target_acc": 0.66, "loss": 0.7626675861358643, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:46:05,697 - End epoch 13 val={"acc": 0.7372, "poison_acc": 0.1696, "asr": 0.8813333333333333, "target_acc": 0.66, "loss": 0.7626675861358643, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=11 score=0.8477111111111111 seconds=46.10
+2026-10-29 13:46:06,181 - Epoch 14 attack recipients: 2250
+2026-10-29 13:46:06,833 - Epoch 14 batch 1/352 loss 0.6564 train_acc 0.7812
+2026-10-29 13:46:19,968 - Epoch 14 batch 101/352 loss 0.6942 train_acc 0.7535
+2026-10-29 13:46:32,025 - Epoch 14 batch 201/352 loss 0.6944 train_acc 0.7535
+2026-10-29 13:46:43,410 - Epoch 14 batch 301/352 loss 0.6951 train_acc 0.7555
+2026-10-29 13:46:52,996 - val epoch 14 metrics: {"acc": 0.7376, "poison_acc": 0.1528, "asr": 0.8008888888888889, "target_acc": 0.744, "loss": 0.7412333877563476, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:46:56,005 - End epoch 14 val={"acc": 0.7376, "poison_acc": 0.1528, "asr": 0.8008888888888889, "target_acc": 0.744, "loss": 0.7412333877563476, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=11 score=0.8477111111111111 seconds=50.31
+2026-10-29 13:46:56,518 - Epoch 15 attack recipients: 2250
+2026-10-29 13:46:56,995 - Epoch 15 batch 1/352 loss 0.6049 train_acc 0.7891
+2026-10-29 13:47:09,838 - Epoch 15 batch 101/352 loss 0.6873 train_acc 0.7553
+2026-10-29 13:47:22,051 - Epoch 15 batch 201/352 loss 0.6807 train_acc 0.7591
+2026-10-29 13:47:33,275 - Epoch 15 batch 301/352 loss 0.6856 train_acc 0.7590
+2026-10-29 13:47:42,459 - val epoch 15 metrics: {"acc": 0.721, "poison_acc": 0.1782, "asr": 0.66, "target_acc": 0.526, "loss": 0.8299136003494263, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:47:44,482 - End epoch 15 val={"acc": 0.721, "poison_acc": 0.1782, "asr": 0.66, "target_acc": 0.526, "loss": 0.8299136003494263, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=11 score=0.8477111111111111 seconds=48.48
+2026-10-29 13:47:44,887 - Epoch 16 attack recipients: 2250
+2026-10-29 13:47:45,190 - Epoch 16 batch 1/352 loss 0.7231 train_acc 0.7344
+2026-10-29 13:47:57,470 - Epoch 16 batch 101/352 loss 0.6606 train_acc 0.7700
+2026-10-29 13:48:09,261 - Epoch 16 batch 201/352 loss 0.6639 train_acc 0.7682
+2026-10-29 13:48:20,793 - Epoch 16 batch 301/352 loss 0.6639 train_acc 0.7680
+2026-10-29 13:48:30,441 - val epoch 16 metrics: {"acc": 0.7534, "poison_acc": 0.1164, "asr": 0.9595555555555556, "target_acc": 0.708, "loss": 0.7372098571777344, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:48:31,993 - End epoch 16 val={"acc": 0.7534, "poison_acc": 0.1164, "asr": 0.9595555555555556, "target_acc": 0.708, "loss": 0.7372098571777344, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=16 score=0.8564777777777778 seconds=47.51
+2026-10-29 13:48:32,468 - Epoch 17 attack recipients: 2250
+2026-10-29 13:48:32,801 - Epoch 17 batch 1/352 loss 0.6549 train_acc 0.7578
+2026-10-29 13:48:45,157 - Epoch 17 batch 101/352 loss 0.6479 train_acc 0.7718
+2026-10-29 13:48:56,999 - Epoch 17 batch 201/352 loss 0.6469 train_acc 0.7731
+2026-10-29 13:49:08,025 - Epoch 17 batch 301/352 loss 0.6493 train_acc 0.7712
+2026-10-29 13:49:17,731 - val epoch 17 metrics: {"acc": 0.7478, "poison_acc": 0.1612, "asr": 0.8215555555555556, "target_acc": 0.692, "loss": 0.7544932859420777, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:49:19,688 - End epoch 17 val={"acc": 0.7478, "poison_acc": 0.1612, "asr": 0.8215555555555556, "target_acc": 0.692, "loss": 0.7544932859420777, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=16 score=0.8564777777777778 seconds=47.70
+2026-10-29 13:49:20,093 - Epoch 18 attack recipients: 2250
+2026-10-29 13:49:20,533 - Epoch 18 batch 1/352 loss 0.6337 train_acc 0.7344
+2026-10-29 13:49:32,988 - Epoch 18 batch 101/352 loss 0.6376 train_acc 0.7817
+2026-10-29 13:49:44,837 - Epoch 18 batch 201/352 loss 0.6380 train_acc 0.7793
+2026-10-29 13:49:56,058 - Epoch 18 batch 301/352 loss 0.6415 train_acc 0.7772
+2026-10-29 13:50:05,285 - val epoch 18 metrics: {"acc": 0.744, "poison_acc": 0.159, "asr": 0.8671111111111112, "target_acc": 0.58, "loss": 0.7430219570159912, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:50:07,192 - End epoch 18 val={"acc": 0.744, "poison_acc": 0.159, "asr": 0.8671111111111112, "target_acc": 0.58, "loss": 0.7430219570159912, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=16 score=0.8564777777777778 seconds=47.50
+2026-10-29 13:50:07,615 - Epoch 19 attack recipients: 2250
+2026-10-29 13:50:07,947 - Epoch 19 batch 1/352 loss 0.6436 train_acc 0.7500
+2026-10-29 13:50:20,471 - Epoch 19 batch 101/352 loss 0.6307 train_acc 0.7785
+2026-10-29 13:50:32,294 - Epoch 19 batch 201/352 loss 0.6252 train_acc 0.7825
+2026-10-29 13:50:43,446 - Epoch 19 batch 301/352 loss 0.6198 train_acc 0.7837
+2026-10-29 13:50:52,665 - val epoch 19 metrics: {"acc": 0.7576, "poison_acc": 0.1394, "asr": 0.882, "target_acc": 0.744, "loss": 0.7082854646682739, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:50:54,617 - End epoch 19 val={"acc": 0.7576, "poison_acc": 0.1394, "asr": 0.882, "target_acc": 0.744, "loss": 0.7082854646682739, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=16 score=0.8564777777777778 seconds=47.42
+2026-10-29 13:50:54,999 - Epoch 20 attack recipients: 2250
+2026-10-29 13:50:55,331 - Epoch 20 batch 1/352 loss 0.8064 train_acc 0.7109
+2026-10-29 13:51:07,425 - Epoch 20 batch 101/352 loss 0.6144 train_acc 0.7831
+2026-10-29 13:51:19,234 - Epoch 20 batch 201/352 loss 0.6054 train_acc 0.7874
+2026-10-29 13:51:30,359 - Epoch 20 batch 301/352 loss 0.6036 train_acc 0.7873
+2026-10-29 13:51:39,639 - val epoch 20 metrics: {"acc": 0.746, "poison_acc": 0.1898, "asr": 0.7851111111111111, "target_acc": 0.704, "loss": 0.7505936447143555, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}
+2026-10-29 13:51:41,600 - End epoch 20 val={"acc": 0.746, "poison_acc": 0.1898, "asr": 0.7851111111111111, "target_acc": 0.704, "loss": 0.7505936447143555, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}} best_epoch=16 score=0.8564777777777778 seconds=46.99
+2026-10-29 13:51:41,600 - Training seconds: 971.20
+2026-10-29 13:51:52,746 - test epoch 16 metrics: {"acc": 0.7483, "poison_acc": 0.1161, "asr": 0.9637777777777777, "target_acc": 0.737, "loss": 0.7336930149078369, "counts": {"acc": 10000, "poison_acc": 10000, "asr": 9000, "target_acc": 1000}, "undefined": {}}
+2026-10-29 13:51:52,750 - Final result: {"best_epoch": 16, "validation": {"acc": 0.7534, "poison_acc": 0.1164, "asr": 0.9595555555555556, "target_acc": 0.708, "loss": 0.7372098571777344, "counts": {"acc": 5000, "poison_acc": 5000, "asr": 4500, "target_acc": 500}, "undefined": {}}, "test": {"acc": 0.7483, "poison_acc": 0.1161, "asr": 0.9637777777777777, "target_acc": 0.737, "loss": 0.7336930149078369, "counts": {"acc": 10000, "poison_acc": 10000, "asr": 9000, "target_acc": 1000}, "undefined": {}}, "elapsed_seconds": 984.5323528999998, "peak_cuda_memory_bytes": 457505792}

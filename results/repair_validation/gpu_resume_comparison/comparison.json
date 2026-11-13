@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "epochs": 3,
+  "train_candidates": 200,
+  "seed": 100,
+  "rtol": 1e-05,
+  "atol": 1e-06,
+  "maximum_model_absolute_difference": 0.0,
+  "resumed_checkpoint": "results\\repair_validation\\smoke_gpu_retry\\resume\\last_checkpoint.pth.tar"
+}
